@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Environment",
+    "displayName": "ENV-Aulas-Latest",
+    "description": "Environment"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "bbfc78f6-eb02-8b9e-41db-f4d8a067db81"
+  }
+}
