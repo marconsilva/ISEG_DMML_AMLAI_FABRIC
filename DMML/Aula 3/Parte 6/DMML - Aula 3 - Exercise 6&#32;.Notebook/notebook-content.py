@@ -46,7 +46,7 @@
 
 # CELL ********************
 
-pip install mlxtend
+%pip install mlxtend seaborn
 
 # METADATA ********************
 

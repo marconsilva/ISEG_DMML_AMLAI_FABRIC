@@ -46,7 +46,7 @@
 
 # CELL ********************
 
-pip install fuzzywuzzy
+%pip install fuzzywuzzy
 
 # METADATA ********************
 

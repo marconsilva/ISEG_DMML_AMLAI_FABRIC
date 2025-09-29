@@ -77,6 +77,17 @@
 
 # CELL ********************
 
+%pip install seaborn
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
 import pandas as pd
 pd.plotting.register_matplotlib_converters()
 import matplotlib.pyplot as plt

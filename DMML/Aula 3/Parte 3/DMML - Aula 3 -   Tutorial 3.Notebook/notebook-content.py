@@ -35,6 +35,17 @@
 
 # CELL ********************
 
+%pip install seaborn
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
 # modules we'll use
 import pandas as pd
 import numpy as np

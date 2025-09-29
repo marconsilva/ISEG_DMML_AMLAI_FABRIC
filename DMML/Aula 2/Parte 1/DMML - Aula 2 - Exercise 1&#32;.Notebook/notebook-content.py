@@ -47,6 +47,7 @@
 # CELL ********************
 
 %pip install /lakehouse/default/Files/Env/learntools-0.3.4-py2.py3-none-any.whl
+%pip install seaborn
 
 # METADATA ********************
 

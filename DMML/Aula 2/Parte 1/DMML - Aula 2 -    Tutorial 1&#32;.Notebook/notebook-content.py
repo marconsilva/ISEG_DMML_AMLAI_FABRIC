@@ -47,6 +47,16 @@
 # 
 # There are a few lines of code that you'll need to run at the top of every notebook to set up your coding environment.  It's not important to understand these lines of code now, and so we won't go into the details just yet.  (_Notice that it returns as output: `Setup Complete`._)
 
+# CELL ********************
+
+%pip install seaborn
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
 
 # CELL ********************
 
