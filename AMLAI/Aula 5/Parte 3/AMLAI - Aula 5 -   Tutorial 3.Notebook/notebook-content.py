@@ -8,9 +8,14 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "a5591839-f387-4a67-a52e-dac9b3ea21b0",
+# META       "default_lakehouse": "81cbac54-cfa3-495b-ad48-b44a92bb72fb",
 # META       "default_lakehouse_name": "DataScienceLearnLakehouse",
-# META       "default_lakehouse_workspace_id": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
+# META       "default_lakehouse_workspace_id": "a677a3bf-5fb2-455e-abaa-9e850bde3e1a",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
+# META         }
+# META       ]
 # META     }
 # META   }
 # META }
@@ -27,6 +32,33 @@
 # # Condense with Maximum Pooling #
 # 
 # Adding condensing step to the model we had before, will give us this:
+
+# CELL ********************
+
+%pip install --upgrade pip
+%pip install tensorflow mlflow
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import os
+
+# Disable GPU and suppress CUDA warnings
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # CELL ********************
 
@@ -71,6 +103,7 @@ model = keras.Sequential([
 # # Example - Apply Maximum Pooling #
 # 
 # Let's add the "condense" step to the feature extraction we did in the example in Lesson 2. This next hidden cell will take us back to where we left off.
+
 
 # CELL ********************
 
@@ -198,3 +231,4 @@ plt.show();
 # # Your Turn #
 # 
 # Now, start the [**Exercise**] to finish the extraction you started in Lesson 2, see this invariance property in action, and also learn about another kind of pooling: **average pooling**!
+

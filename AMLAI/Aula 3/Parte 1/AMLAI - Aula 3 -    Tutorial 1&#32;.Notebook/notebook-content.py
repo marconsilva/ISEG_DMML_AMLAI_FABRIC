@@ -51,6 +51,7 @@
 # It's an equation of a line! It's the slope-intercept equation, where $w$ is the slope and $b$ is the y-intercept. 
 # </blockquote>
 
+
 # MARKDOWN ********************
 
 # # Example - The Linear Unit as a Model #
@@ -85,6 +86,36 @@
 # 
 # We could define a linear model accepting three input features (`'sugars'`, `'fiber'`, and `'protein'`) and producing a single output (`'calories'`) like so:
 
+
+# CELL ********************
+
+%pip install --upgrade pip
+%pip install tensorflow
+
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import os
+
+# Disable GPU and suppress CUDA warnings
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # CELL ********************
 
 from tensorflow import keras
@@ -94,6 +125,8 @@ from tensorflow.keras import layers
 model = keras.Sequential([
     layers.Dense(units=1, input_shape=[3])
 ])
+
+print(model)
 
 # METADATA ********************
 
@@ -120,3 +153,4 @@ model = keras.Sequential([
 # # Your Turn #
 # 
 # [**Define a linear model**] for the *Red Wine Quality* dataset.
+

@@ -8,16 +8,36 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "a5591839-f387-4a67-a52e-dac9b3ea21b0",
+# META       "default_lakehouse": "81cbac54-cfa3-495b-ad48-b44a92bb72fb",
 # META       "default_lakehouse_name": "DataScienceLearnLakehouse",
-# META       "default_lakehouse_workspace_id": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
+# META       "default_lakehouse_workspace_id": "a677a3bf-5fb2-455e-abaa-9e850bde3e1a",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
+# META         }
+# META       ]
 # META     }
 # META   }
 # META }
 
 # CELL ********************
 
-pip install scikit-image
+%pip install scikit-image tensorflow
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import os
+
+# Disable GPU and suppress CUDA warnings
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
 
 # METADATA ********************
 
@@ -158,6 +178,7 @@ def show_extraction(image,
 # 
 # With these two parameters, defining the two layers becomes:
 
+
 # CELL ********************
 
 from tensorflow import keras
@@ -219,6 +240,7 @@ model = keras.Sequential([
 # To better understand the effect of the sliding window parameters, it can help to observe a feature extraction on a low-resolution image so that we can see the individual pixels. Let's just look at a simple circle.
 # 
 # This next hidden cell will create an image and kernel for us.
+
 
 # CELL ********************
 
@@ -313,3 +335,4 @@ show_extraction(
 # # Your Turn #
 # 
 # Move on to the [**Exercise**] where you'll explore sliding windows, learn about how *stacking* convolutional layers can increase the effective window size, and also learn about how convolution can be used with *one-dimensional* data, like time series.
+

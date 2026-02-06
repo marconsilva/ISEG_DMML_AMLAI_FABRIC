@@ -8,9 +8,14 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "a5591839-f387-4a67-a52e-dac9b3ea21b0",
+# META       "default_lakehouse": "81cbac54-cfa3-495b-ad48-b44a92bb72fb",
 # META       "default_lakehouse_name": "DataScienceLearnLakehouse",
-# META       "default_lakehouse_workspace_id": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
+# META       "default_lakehouse_workspace_id": "a677a3bf-5fb2-455e-abaa-9e850bde3e1a",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
+# META         }
+# META       ]
 # META     }
 # META   }
 # META }
@@ -36,6 +41,33 @@
 # Let's start by loading our dataset and setting up our train, validation, and test sets.
 # 
 # #### Run the code below to import our required libraries and set up the graphing features.
+
+# CELL ********************
+
+%pip install --upgrade pip
+%pip install tensorflow mlflow
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import os
+
+# Disable GPU and suppress CUDA warnings
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # CELL ********************
 
@@ -419,3 +451,4 @@ print('real value', np.argmax(test_Y[test_sample_random]))
 # * __Dropout__ - a regularization technique to help prevent overfitting.
 # * __Dense layers__ - neural network layers which perform classification on the features extracted by the convolutional layers and downsampled by the pooling layers.
 # * __Softmax__ - an activation function which outputs the probability for each category.
+

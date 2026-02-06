@@ -8,9 +8,14 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "a5591839-f387-4a67-a52e-dac9b3ea21b0",
+# META       "default_lakehouse": "81cbac54-cfa3-495b-ad48-b44a92bb72fb",
 # META       "default_lakehouse_name": "DataScienceLearnLakehouse",
-# META       "default_lakehouse_workspace_id": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
+# META       "default_lakehouse_workspace_id": "a677a3bf-5fb2-455e-abaa-9e850bde3e1a",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
+# META         }
+# META       ]
 # META     },
 # META     "environment": {
 # META       "environmentId": "8d4e4ec0-4003-41ac-8712-a74940892402",
@@ -26,6 +31,33 @@
 # In this exercise, you'll work on building some intuition around feature extraction. First, we'll walk through the example we did in the tutorial again, but this time, with a kernel you choose yourself. We've mostly been working with images in this course, but what's behind all of the operations we're learning about is mathematics. So, we'll also take a look at how these feature maps can be represented instead as arrays of numbers and what effect convolution with a kernel will have on them.
 # 
 # Run the cell below to get started!
+
+# CELL ********************
+
+%pip install --upgrade pip
+%pip install tensorflow mlflow
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import os
+
+# Disable GPU and suppress CUDA warnings
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # CELL ********************
 

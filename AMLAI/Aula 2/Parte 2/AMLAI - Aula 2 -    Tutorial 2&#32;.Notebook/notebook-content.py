@@ -57,6 +57,7 @@
 # 
 # This formula captures both global patterns (through biases) and personalized preferences (through latent features).
 
+
 # MARKDOWN ********************
 
 # # Stacking Dense Layers #
@@ -76,6 +77,7 @@
 # ## Building Sequential Models ##
 # 
 # The `Sequential` model we've been using will connect together a list of layers in order from first to last: the first layer gets the input, the last layer produces the output. This creates the model in the figure above:
+
 
 # CELL ********************
 

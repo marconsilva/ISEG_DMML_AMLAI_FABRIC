@@ -8,9 +8,14 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "a5591839-f387-4a67-a52e-dac9b3ea21b0",
+# META       "default_lakehouse": "81cbac54-cfa3-495b-ad48-b44a92bb72fb",
 # META       "default_lakehouse_name": "DataScienceLearnLakehouse",
-# META       "default_lakehouse_workspace_id": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
+# META       "default_lakehouse_workspace_id": "a677a3bf-5fb2-455e-abaa-9e850bde3e1a",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
+# META         }
+# META       ]
 # META     }
 # META   }
 # META }
@@ -18,6 +23,33 @@
 # MARKDOWN ********************
 
 # <!--TITLE: Convolution and ReLU-->
+
+# CELL ********************
+
+%pip install --upgrade pip
+%pip install tensorflow mlflow
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import os
+
+# Disable GPU and suppress CUDA warnings
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # CELL ********************
 
@@ -85,6 +117,7 @@ def show_kernel(kernel, label=True, digits=None, text_size=28):
 # # Filter with Convolution #
 # 
 # A convolutional layer carries out the filtering step. You might define a convolutional layer in a Keras model something like this:
+
 
 # CELL ********************
 
@@ -156,6 +189,7 @@ model = keras.Sequential([
 # 
 # The ReLU activation can be defined in its own `Activation` layer, but most often you'll just include it as the activation function of `Conv2D`.
 
+
 # CELL ********************
 
 model = keras.Sequential([
@@ -188,6 +222,7 @@ model = keras.Sequential([
 # We'll do the extraction ourselves in this example to understand better what convolutional networks are doing "behind the scenes".
 # 
 # Here is the image we'll use for this example:
+
 
 # CELL ********************
 

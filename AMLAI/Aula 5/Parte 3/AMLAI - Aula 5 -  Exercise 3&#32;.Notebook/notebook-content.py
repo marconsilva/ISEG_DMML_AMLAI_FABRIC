@@ -8,9 +8,14 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "a5591839-f387-4a67-a52e-dac9b3ea21b0",
+# META       "default_lakehouse": "81cbac54-cfa3-495b-ad48-b44a92bb72fb",
 # META       "default_lakehouse_name": "DataScienceLearnLakehouse",
-# META       "default_lakehouse_workspace_id": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
+# META       "default_lakehouse_workspace_id": "a677a3bf-5fb2-455e-abaa-9e850bde3e1a",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
+# META         }
+# META       ]
 # META     },
 # META     "environment": {
 # META       "environmentId": "8d4e4ec0-4003-41ac-8712-a74940892402",
@@ -29,8 +34,23 @@
 
 # CELL ********************
 
-pip install scikit-image
+%pip install scikit-image tensorflow 
 
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import os
+
+# Disable GPU and suppress CUDA warnings
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
 
 # METADATA ********************
 
@@ -268,6 +288,7 @@ q_2.solution()
 # 
 # Run this next cell a few times until you get a feel for how this new layer works.
 
+
 # CELL ********************
 
 feature_maps = [visiontools.random_map([5, 5], scale=0.1, decay_power=4) for _ in range(8)]
@@ -422,3 +443,4 @@ q_3.hint()
 # # Keep Going #
 # 
 # In the next lesson, we'll conclude our discussion of the feature extraction operations with **sliding windows**, the typical way of describing how the convolution and pooling operations scan over an image. We'll describe here the final two parameters in the `Conv2D` and `MaxPool2D` layers: `strides` and `padding`. 
+

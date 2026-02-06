@@ -1,5 +1,12 @@
 # Fabric notebook source
 
+# METADATA ********************
+
+# META {
+# META   "kernel_info": {
+# META     "name": "synapse_pyspark"
+# META   }
+# META }
 
 # MARKDOWN ********************
 
@@ -8,6 +15,33 @@
 # In these exercises, you'll explore what effect various random transformations have on an image, consider what kind of augmentation might be appropriate on a given dataset, and then use data augmentation with the *Car or Truck* dataset to train a custom network.
 # 
 # Run the cell below to set everything up!
+
+# CELL ********************
+
+%pip install --upgrade pip
+%pip install tensorflow mlflow
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import os
+
+# Disable GPU and suppress CUDA warnings
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # CELL ********************
 
@@ -85,6 +119,13 @@ ds_valid = (
 )
 
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # MARKDOWN ********************
 
 # # (Optional) Explore Augmentation #
@@ -114,6 +155,13 @@ for i in range(16):
     plt.axis('off')
 plt.show()
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # MARKDOWN ********************
 
 # Do the transformations you chose seem reasonable for the *Car or Truck* dataset?
@@ -141,11 +189,25 @@ plt.show()
 # View the solution (Run this code cell to receive credit!)
 q_1.check()
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # CELL ********************
 
 # Lines below will give you a hint 
 #_COMMENT_IF(PROD)_
 q_1.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # MARKDOWN ********************
 
@@ -166,11 +228,25 @@ q_1.solution()
 # View the solution (Run this code cell to receive credit!)
 q_2.check()
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # CELL ********************
 
 # Lines below will give you a hint 
 #_COMMENT_IF(PROD)_
 q_2.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # MARKDOWN ********************
 
@@ -226,6 +302,13 @@ model = keras.Sequential([
 # Check your answer
 q_3.check()
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # CELL ********************
 
 #%%RM_IF(PROD)%%
@@ -263,6 +346,13 @@ model = keras.Sequential([
     layers.Dense(1, activation='sigmoid'),
 ])
 q_3.assert_check_failed()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # CELL ********************
 
@@ -303,6 +393,13 @@ model = keras.Sequential([
 ])
 q_3.assert_check_failed()
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # CELL ********************
 
 #%%RM_IF(PROD)%%
@@ -340,6 +437,13 @@ model = keras.Sequential([
     layers.Dense(1, activation='sigmoid'),
 ])
 q_3.assert_check_failed()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # CELL ********************
 
@@ -379,6 +483,13 @@ model = keras.Sequential([
 ])
 q_3.assert_check_passed()
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # CELL ********************
 
 # Lines below will give you a hint or solution code
@@ -386,6 +497,13 @@ q_3.assert_check_passed()
 q_3.hint()
 #_COMMENT_IF(PROD)_
 q_3.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # MARKDOWN ********************
 
@@ -412,6 +530,13 @@ history_frame = pd.DataFrame(history.history)
 history_frame.loc[:, ['loss', 'val_loss']].plot()
 history_frame.loc[:, ['binary_accuracy', 'val_binary_accuracy']].plot();
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # MARKDOWN ********************
 
 # # 4) Train Model #
@@ -422,6 +547,13 @@ history_frame.loc[:, ['binary_accuracy', 'val_binary_accuracy']].plot();
 
 # View the solution (Run this code cell to receive credit!)
 q_4.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # MARKDOWN ********************
 

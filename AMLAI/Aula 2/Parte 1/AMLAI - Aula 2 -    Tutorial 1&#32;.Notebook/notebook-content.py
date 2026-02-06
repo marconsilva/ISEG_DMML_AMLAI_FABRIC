@@ -69,7 +69,6 @@
 #     <strong>Choosing the Right Metric</strong><br>
 # <strong>Cosine similarity</strong> is best when magnitude doesn't matter (e.g., some users rate everything high, others rate everything low). <strong>Pearson correlation</strong> is good when you want to account for user bias in ratings. <strong>Euclidean distance</strong> is simple but sensitive to scale.
 # </blockquote>
-
 # # Item-to-Item Collaborative Filtering #
 # 
 # Item-to-Item recommendation finds items similar to ones you've already interacted with.
@@ -99,6 +98,7 @@
 # **Disadvantages:**
 # - Can't handle new items (cold start problem)
 # - Limited by item features captured in ratings
+
 
 # MARKDOWN ********************
 
@@ -133,6 +133,7 @@
 # - Scalability issues with many users
 # - User preferences change over time
 # - Cold start problem for new users
+
 
 # MARKDOWN ********************
 

@@ -357,6 +357,7 @@ ax.set_zlabel('r');
 # 
 # In Scikit-Learn, we can apply kernelized SVM simply by changing our linear kernel to an RBF kernel, using the `kernel` model hyperparameter:
 
+
 # CELL ********************
 
 clf = SVC(kernel='rbf', C=1E6)
@@ -662,6 +663,7 @@ plt.ylabel('predicted label');
 # 
 # With those traits in mind, I generally only turn to SVMs once other simpler, faster, and less tuning-intensive methods have been shown to be insufficient for my needs.
 # Nevertheless, if you have the CPU cycles to commit to training and cross-validating an SVM on your data, the method can lead to excellent results.
+
 
 # MARKDOWN ********************
 

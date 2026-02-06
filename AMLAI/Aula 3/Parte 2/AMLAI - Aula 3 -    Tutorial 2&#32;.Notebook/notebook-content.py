@@ -61,6 +61,7 @@
 # </center></figcaption>
 # </figure>
 
+
 # MARKDOWN ********************
 
 # # Stacking Dense Layers #
@@ -81,6 +82,34 @@
 # 
 # The `Sequential` model we've been using will connect together a list of layers in order from first to last: the first layer gets the input, the last layer produces the output. This creates the model in the figure above:
 
+
+# CELL ********************
+
+%pip install --upgrade pip
+%pip install tensorflow
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import os
+
+# Disable GPU and suppress CUDA warnings
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # CELL ********************
 
 from tensorflow import keras
@@ -93,6 +122,8 @@ model = keras.Sequential([
     # the linear output layer 
     layers.Dense(units=1),
 ])
+
+print(model)
 
 # METADATA ********************
 
