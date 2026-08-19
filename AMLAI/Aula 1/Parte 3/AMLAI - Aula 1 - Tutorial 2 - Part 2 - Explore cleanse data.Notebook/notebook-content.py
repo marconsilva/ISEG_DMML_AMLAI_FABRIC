@@ -39,12 +39,25 @@
 
 # CELL ********************
 
-df = (
-    spark.read.option("header", True)
-    .option("inferSchema", True)
-    .csv("Files/churn/raw/churn.csv")
-    .cache()
-)
+from pathlib import Path
+import pandas as pd
+
+IN_FABRIC = "spark" in globals()
+if IN_FABRIC:
+    df = (
+        spark.read.option("header", True)
+        .option("inferSchema", True)
+        .csv("Files/churn/raw/churn.csv")
+        .cache()
+    )
+else:
+    local_path = Path.cwd() / "Files" / "churn" / "raw" / "churn.csv"
+    if not local_path.exists():
+        raise FileNotFoundError("Run Part 1 first to download Files/churn/raw/churn.csv.")
+    df = pd.read_csv(local_path)
+    if "display" not in globals():
+        def display(value, **_):
+            print(value.head() if hasattr(value, "head") else value)
 
 # METADATA ********************
 
@@ -61,7 +74,8 @@ df = (
 
 # CELL ********************
 
-df = df.toPandas()
+if hasattr(df, "toPandas"):
+    df = df.toPandas()
 
 # METADATA ********************
 
@@ -160,9 +174,11 @@ df_clean.head()
 dependent_variable_name = "Exited"
 print(dependent_variable_name)
 # Determine the categorical attributes
-categorical_variables = [col for col in df_clean.columns if col in "O"
-                        or df_clean[col].nunique() <=5
-                        and col not in "Exited"]
+categorical_variables = [
+    col for col in df_clean.columns
+    if col != dependent_variable_name
+    and (df_clean[col].dtype == "object" or df_clean[col].nunique() <= 5)
+]
 print(categorical_variables)
 # Determine the numerical attributes
 numeric_variables = [col for col in df_clean.columns if df_clean[col].dtype != "object"
@@ -316,9 +332,15 @@ df_clean_1.head()
 
 table_name = "df_clean"
 # Create Spark DataFrame from pandas
-sparkDF=spark.createDataFrame(df_clean_1) 
-sparkDF.write.mode("overwrite").format("delta").save(f"Tables/{table_name}")
-print(f"Spark dataframe saved to delta table: {table_name}")
+if IN_FABRIC:
+    sparkDF = spark.createDataFrame(df_clean_1)
+    sparkDF.write.mode("overwrite").format("delta").save(f"Tables/{table_name}")
+    print(f"Spark dataframe saved to delta table: {table_name}")
+else:
+    output_path = Path.cwd() / "Tables" / f"{table_name}.csv"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    df_clean_1.to_csv(output_path, index=False)
+    print(f"Pandas dataframe saved to {output_path}")
 
 # METADATA ********************
 

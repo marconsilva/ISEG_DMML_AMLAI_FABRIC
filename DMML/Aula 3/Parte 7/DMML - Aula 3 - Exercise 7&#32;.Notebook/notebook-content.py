@@ -142,6 +142,10 @@ from sklearn.metrics import mean_absolute_error
 
 # function for comparing different approaches
 def score_dataset(X_train, X_valid, y_train, y_valid):
+    X_train = X_train.copy()
+    X_valid = X_valid.copy()
+    X_train.columns = X_train.columns.map(str)
+    X_valid.columns = X_valid.columns.map(str)
     model = RandomForestRegressor(n_estimators=100, random_state=0)
     model.fit(X_train, y_train)
     preds = model.predict(X_valid)
@@ -573,4 +577,3 @@ print(score_dataset(OH_X_train, OH_X_valid, y_train, y_valid))
 # # Keep going
 # 
 # With missing value handling and categorical encoding, your modeling process is getting complex. This complexity gets worse when you want to save your model to use in the future. The key to managing this complexity is something called **pipelines** which you will learn in the future. 
-

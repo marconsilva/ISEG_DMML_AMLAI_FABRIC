@@ -73,7 +73,7 @@ spam.head(10)
 
 # CELL ********************
 
-pip install spacy
+%pip install spacy
 
 # METADATA ********************
 

@@ -54,10 +54,22 @@
 # CELL ********************
 
 import pandas as pd
+from pathlib import Path
 from sklearn.model_selection import train_test_split
 
 # Read the data
-data = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula1/melb_data.csv')
+data_candidates = [
+    Path('/lakehouse/default/Files/AMLAI_Aula1/melb_data.csv'),
+    Path.cwd() / 'Files' / 'AMLAI_Aula1' / 'melb_data.csv',
+    Path.cwd() / 'melb_data.csv',
+]
+data_path = next((path for path in data_candidates if path.exists()), data_candidates[0])
+if not data_path.exists():
+    raise FileNotFoundError(
+        "Upload melb_data.csv to Files/AMLAI_Aula1 in the attached lakehouse "
+        "or place it in a local Files/AMLAI_Aula1 folder."
+    )
+data = pd.read_csv(data_path)
 
 # Separate target from predictors
 y = data.Price
@@ -172,8 +184,11 @@ model = RandomForestRegressor(n_estimators=100, random_state=0)
 # CELL ********************
 
 from sklearn.metrics import mean_absolute_error
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+    mlflow.autolog(disable=True)
+except ImportError:
+    mlflow = None
 
 # Bundle preprocessing and modeling code in a pipeline
 my_pipeline = Pipeline(steps=[('preprocessor', preprocessor),

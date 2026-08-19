@@ -62,7 +62,6 @@ store_sales = pd.read_csv(
         'onpromotion': 'uint32',
     },
     parse_dates=['date'],
-    infer_datetime_format=True,
 )
 store_sales['date'] = store_sales.date.dt.to_period('D')
 store_sales = store_sales.set_index(['store_nbr', 'family', 'date']).sort_index()
@@ -83,7 +82,6 @@ test = pd.read_csv(
         'onpromotion': 'uint32',
     },
     parse_dates=['date'],
-    infer_datetime_format=True,
 )
 test['date'] = test.date.dt.to_period('D')
 test = test.set_index(['store_nbr', 'family', 'date']).sort_index()
@@ -360,4 +358,3 @@ _ = ax.legend([FAMILY, FAMILY + ' Forecast'])
 
 # # Keep going on learning more #
 # 
-

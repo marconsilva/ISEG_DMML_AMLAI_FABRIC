@@ -112,7 +112,7 @@
 # * datasets: Here we are going to use ‘iris’ and 'boston house prices' dataset
 # * model_selection: Here we are going to use model_selection.train_test_split() for splitting the data
 # * tree: Here we are going to decision tree classifier and regressor
-# * graphviz: Is used to export the tree into Graphviz format using the export_graphviz exporter
+# * matplotlib: Used to visualize the fitted decision trees inline
 
 # CELL ********************
 
@@ -121,7 +121,7 @@ import numpy as np
 from sklearn import datasets
 from sklearn import model_selection
 from sklearn import tree
-import graphviz
+import matplotlib.pyplot as plt
 import mlflow
 mlflow.autolog(disable=True)
 
@@ -207,7 +207,7 @@ df[df.target == 2].head(3)
 
 #Lets create feature matrix X  and y labels
 X = df[['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']]
-y = df[['target']]
+y = df['target']
 
 print('X shape=', X.shape)
 print('y shape=', y.shape)
@@ -269,14 +269,14 @@ cls.fit(X_train ,y_train)
 
 # CELL ********************
 
-print('Actual value of species for 10th training example=',iris.target_names[y_test.iloc[10]][0])
-print('Predicted value of species for 10th training example=', iris.target_names[cls.predict([X_test.iloc[10]])][0])
+print('Actual value of species for 10th test example=', iris.target_names[y_test.iloc[10]])
+print('Predicted value of species for 10th test example=', iris.target_names[cls.predict(X_test.iloc[[10]])][0])
 
-print('\nActual value of species for 20th training example=',iris.target_names[y_test.iloc[20]][0])
-print('Predicted value of species for 20th training example=', iris.target_names[cls.predict([X_test.iloc[20]])][0])
+print('\nActual value of species for 20th test example=', iris.target_names[y_test.iloc[20]])
+print('Predicted value of species for 20th test example=', iris.target_names[cls.predict(X_test.iloc[[20]])][0])
 
-print('\nActual value of species for 30th training example=',iris.target_names[y_test.iloc[29]][0])
-print('Predicted value of species for 30th training example=', iris.target_names[cls.predict([X_test.iloc[29]])][0])
+print('\nActual value of species for 30th test example=', iris.target_names[y_test.iloc[29]])
+print('Predicted value of species for 30th test example=', iris.target_names[cls.predict(X_test.iloc[[29]])][0])
 
 # METADATA ********************
 
@@ -304,41 +304,19 @@ cls.score(X_test, y_test)
 # MARKDOWN ********************
 
 # ## Visualize The Decision Tree
-# We will use plot_tree() function from sklearn to plot the tree and then export the tree in Graphviz format using the export_graphviz exporter. Results will be saved in iris_decision_tree.pdf file
+# We will use scikit-learn's `plot_tree()` function so the visualization works inline without an external Graphviz executable.
 
 # CELL ********************
 
-tree.plot_tree(cls) 
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# CELL ********************
-
-dot_data = tree.export_graphviz(cls, out_file=None) 
-graph = graphviz.Source(dot_data) 
-graph.render("iris_decision_tree") 
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# CELL ********************
-
-dot_data = tree.export_graphviz(cls, out_file=None, 
-                      feature_names=iris.feature_names,  
-                      class_names=iris.target_names,  
-                      filled=True, rounded=True,  
-                      special_characters=True)  
-graph = graphviz.Source(dot_data)  
-graph 
+plt.figure(figsize=(12, 8))
+tree.plot_tree(
+    cls,
+    feature_names=iris.feature_names,
+    class_names=iris.target_names,
+    filled=True,
+    rounded=True,
+)
+plt.show()
 
 # METADATA ********************
 
@@ -384,8 +362,8 @@ import pandas as pd
 import numpy as np
 
 df = pd.read_csv(
-    filepath_or_buffer="http://lib.stat.cmu.edu/datasets/boston",
-    delim_whitespace=True,
+    filepath_or_buffer="https://lib.stat.cmu.edu/datasets/boston",
+    sep=r"\s+",
     skiprows=21,
     header=None,
 )
@@ -455,7 +433,7 @@ df
 
 #Lets create feature matrix X  and y labels
 X = df[['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT']]
-y = df[['target']]
+y = df['target']
 
 print('X shape=', X.shape)
 print('y shape=', y.shape)
@@ -519,10 +497,10 @@ dtr.fit(X_train ,y_train)
 
 # CELL ********************
 
-predicted_price= pd.DataFrame(dtr.predict(X_test), columns=['Predicted Price'])
-actual_price = pd.DataFrame(y_test, columns=['target'])
-actual_price = actual_price.reset_index(drop=True) # Drop the index so that we can concat it, to create new dataframe
-df_actual_vs_predicted = pd.concat([actual_price,predicted_price],axis =1)
+df_actual_vs_predicted = pd.DataFrame({
+    'Actual Price': y_test.reset_index(drop=True),
+    'Predicted Price': dtr.predict(X_test),
+})
 df_actual_vs_predicted.T
 
 # METADATA ********************
@@ -551,11 +529,18 @@ dtr.score(X_test, y_test)
 # MARKDOWN ********************
 
 # ## Visualize The Decision Tree
-# We will use plot_tree() function from sklearn to plot the tree and then export the tree in Graphviz format using the export_graphviz exporter. Results will be saved in boston_decision_tree.pdf file
+# We will use scikit-learn's `plot_tree()` function so the visualization works inline without an external Graphviz executable.
 
 # CELL ********************
 
-tree.plot_tree(dtr) 
+plt.figure(figsize=(16, 9))
+tree.plot_tree(
+    dtr,
+    feature_names=features_name,
+    filled=True,
+    rounded=True,
+)
+plt.show()
 
 # METADATA ********************
 
@@ -565,40 +550,3 @@ tree.plot_tree(dtr)
 # META }
 
 # CELL ********************
-
-dot_data = tree.export_graphviz(dtr, out_file=None) 
-graph = graphviz.Source(dot_data) 
-graph.render("boston_decision_tree") 
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# CELL ********************
-
-dot_data = tree.export_graphviz(dtr, out_file=None, 
-                      feature_names=features_name,  
-                      filled=True, rounded=True,  
-                      special_characters=True)  
-graph = graphviz.Source(dot_data)  
-graph 
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# CELL ********************
-
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }

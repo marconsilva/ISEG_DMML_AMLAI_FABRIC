@@ -155,7 +155,13 @@ data.describe()
 # These Plots help to explain the values and how they are scattered
 
 plt.figure(figsize=(12,6))
-sns.pairplot(data,x_vars=['YearsExperience'],y_vars=['Salary'],size=7,kind='scatter')
+sns.pairplot(
+    data,
+    x_vars=["YearsExperience"],
+    y_vars=["Salary"],
+    height=7,
+    kind="scatter",
+)
 plt.xlabel('Years')
 plt.ylabel('Salary')
 plt.title('Salary Prediction')

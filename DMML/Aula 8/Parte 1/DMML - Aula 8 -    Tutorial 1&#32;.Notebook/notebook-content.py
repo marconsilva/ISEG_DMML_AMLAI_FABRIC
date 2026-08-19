@@ -147,7 +147,7 @@ X.head()
 # CELL ********************
 
 # Create cluster feature
-kmeans = KMeans(n_clusters=6)
+kmeans = KMeans(n_clusters=6, n_init=10, random_state=0)
 X["Cluster"] = kmeans.fit_predict(X)
 X["Cluster"] = X["Cluster"].astype("category")
 

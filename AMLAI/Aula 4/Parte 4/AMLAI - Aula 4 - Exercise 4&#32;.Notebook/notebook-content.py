@@ -49,6 +49,7 @@ import os
 # Disable GPU and suppress CUDA warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # METADATA ********************
 
@@ -97,7 +98,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
 from sklearn.compose import make_column_transformer
 
-hotel = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula4/hotel.csv')
+hotel = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'hotel.csv'))
 
 X = hotel.copy()
 y = X.pop('is_canceled')
@@ -290,4 +291,3 @@ q_3.check()
 # 
 # With your new skills you're ready to take on more advanced applications like computer vision and sentiment classification. We will explore those in the next classes.
 # 
-

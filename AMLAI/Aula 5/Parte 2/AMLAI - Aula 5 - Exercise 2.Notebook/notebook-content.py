@@ -35,7 +35,7 @@
 # CELL ********************
 
 %pip install --upgrade pip
-%pip install tensorflow mlflow
+%pip install tensorflow scikit-image sympy
 
 # METADATA ********************
 
@@ -51,6 +51,7 @@ import os
 # Disable GPU and suppress CUDA warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # METADATA ********************
 
@@ -92,7 +93,9 @@ tf.config.run_functions_eagerly(True)
 
 # CELL ********************
 
-image_path = '/lakehouse/default/Files/AMLAI_Aula5/computer-vision-resources/car_illus.jpg'
+image_path = os.path.join(
+    DATA_ROOT, 'AMLAI_Aula5', 'computer-vision-resources', 'car_illus.jpg'
+)
 image = tf.io.read_file(image_path)
 image = tf.io.decode_jpeg(image, channels=1)
 image = tf.image.resize(image, size=[400, 400])
@@ -113,17 +116,6 @@ plt.show();
 # MARKDOWN ********************
 
 # You can run this cell to see some standard kernels used in image processing.
-
-# CELL ********************
-
-!pip install scikit-image
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
 
 # CELL ********************
 

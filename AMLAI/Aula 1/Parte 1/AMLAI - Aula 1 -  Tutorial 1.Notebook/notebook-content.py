@@ -24,10 +24,13 @@
 %matplotlib inline
 import numpy as np
 import matplotlib.pyplot as plt
-plt.style.use('seaborn-whitegrid')
+plt.style.use('seaborn-v0_8-whitegrid')
 from scipy import stats
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+    mlflow.autolog(disable=True)
+except ImportError:
+    mlflow = None
 
 # METADATA ********************
 
@@ -264,8 +267,12 @@ for axi, N in zip(ax, [60, 120]):
 
 # CELL ********************
 
-from ipywidgets import interact, fixed
-interact(plot_svm, N=(10, 200), ax=fixed(None));
+try:
+    from ipywidgets import interact, fixed
+    interact(plot_svm, N=(10, 200), ax=fixed(None))
+except ImportError:
+    print("ipywidgets is unavailable; showing a static example instead.")
+    plot_svm(N=60)
 
 # METADATA ********************
 

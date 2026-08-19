@@ -119,8 +119,8 @@ q2.check()
 
 # CELL ********************
 
-q2.hint()
-q2.solution()
+#q2.hint()
+#q2.solution()
 
 # METADATA ********************
 

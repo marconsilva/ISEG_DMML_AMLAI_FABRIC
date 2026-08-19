@@ -57,12 +57,18 @@ display(df_test)
 # CELL ********************
 
 from synapse.ml.predict import MLFlowTransformer
+from mlflow.tracking import MlflowClient
 
+model_name = 'lgbm_sm'
+registered_versions = MlflowClient().search_model_versions(f"name='{model_name}'")
+if not registered_versions:
+    raise RuntimeError("No registered lgbm_sm model was found. Run Part 3 first.")
+model_version = max(int(version.version) for version in registered_versions)
 model = MLFlowTransformer(
     inputCols=list(df_test.columns),
     outputCol='predictions',
-    modelName='lgbm_sm',
-    modelVersion=1
+    modelName=model_name,
+    modelVersion=model_version
 )
 
 # MARKDOWN ********************
@@ -70,8 +76,6 @@ model = MLFlowTransformer(
 # Now that you have the MLFlowTransformer object, you can use it to generate batch predictions.
 
 # CELL ********************
-
-import pandas
 
 predictions = model.transform(df_test)
 display(predictions)
@@ -85,12 +89,12 @@ display(predictions)
 from pyspark.ml.feature import SQLTransformer 
 
 # Substitute "model_name", "model_version", and "features" below with values for your own model name, model version, and feature columns
-model_name = 'lgbm_sm'
-model_version = 1
 features = df_test.columns
+quoted_features = [f"`{feature.replace('`', '``')}`" for feature in features]
 
 sqlt = SQLTransformer().setStatement( 
-    f"SELECT PREDICT('{model_name}/{model_version}', {','.join(features)}) as predictions FROM __THIS__")
+    f"SELECT PREDICT('{model_name}/{model_version}', {','.join(quoted_features)}) "
+    "AS predictions FROM __THIS__")
 
 # Substitute "X_test" below with your own test dataset
 display(sqlt.transform(df_test))
@@ -101,7 +105,7 @@ display(sqlt.transform(df_test))
 
 # CELL ********************
 
-from pyspark.sql.functions import col, pandas_udf, udf, lit
+from pyspark.sql.functions import col
 
 # Substitute "model" and "features" below with values for your own model name and feature columns
 my_udf = model.to_udf()

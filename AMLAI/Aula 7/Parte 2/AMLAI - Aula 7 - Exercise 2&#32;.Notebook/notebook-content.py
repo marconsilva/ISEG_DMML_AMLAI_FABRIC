@@ -69,7 +69,6 @@ store_sales = pd.read_csv(
     comp_dir / 'train.csv',
     dtype=dtype,
     parse_dates=['date'],
-    infer_datetime_format=True,
 )
 store_sales = store_sales.set_index('date').to_period('D')
 store_sales = store_sales.set_index(['store_nbr', 'family'], append=True)

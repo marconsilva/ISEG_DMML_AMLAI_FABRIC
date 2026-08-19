@@ -150,7 +150,7 @@ X_train = []
 y_train = []
 
 timesteps = 50
-for i in range(timesteps, 1258):
+for i in range(timesteps, len(train_scaled)):
     X_train.append(train_scaled[i-timesteps:i, 0])
     y_train.append(train_scaled[i, 0])
 X_train, y_train = np.array(X_train), np.array(y_train)
@@ -385,7 +385,7 @@ inputs
 # CELL ********************
 
 X_test = []
-for i in range(timesteps, 70):
+for i in range(timesteps, len(inputs)):
     X_test.append(inputs[i-timesteps:i, 0])
 X_test = np.array(X_test)
 X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))

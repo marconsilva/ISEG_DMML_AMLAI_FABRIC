@@ -64,8 +64,12 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 %matplotlib inline
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+except ImportError:
+    mlflow = None
+if mlflow is not None:
+    mlflow.autolog(disable=True)
 
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
@@ -132,8 +136,8 @@ dataset.describe()
 
 # define X and y
 feature_cols = ['pregnant', 'insulin', 'bmi', 'age']
-X = pima[feature_cols]
-y = pima.label
+X = dataset[feature_cols]
+y = dataset.label
 
 # METADATA ********************
 

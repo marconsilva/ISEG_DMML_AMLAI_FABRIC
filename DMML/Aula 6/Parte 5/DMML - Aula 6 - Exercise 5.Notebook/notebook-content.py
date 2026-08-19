@@ -163,7 +163,7 @@ print("Average MAE score:", scores.mean())
 # Begin by writing a function `get_score()` that reports the average (over three cross-validation folds) MAE of a machine learning pipeline that uses:
 # - the data in `X` and `y` to create folds,
 # - `SimpleImputer()` (with all parameters left as default) to replace missing values, and
-# - `Ridge()` (with `random_state=0`) to fit a random forest model.
+# - `Ridge()` (with `random_state=0`) to fit a ridge regression model.
 # - Make sure that the output from the function is using .round(2) ! 
 # 
 # The `alpha` parameter supplied to `get_score()` is used when setting the ridge regression, alpha which is a positive constant that multiplies the penalty term, controlling the regularization strength. 
@@ -210,19 +210,6 @@ step_1.solution()
 # Now, you will use the function that you defined in Step 1 to evaluate the model performance corresponding to eight different values for the number of alphas in the Ridge: 50, 100, 150, ..., 300, 350, 400. (ideally should be as above in log scale)
 # 
 # Store your results in a Python dictionary `results`, where `results[i]` is the average MAE returned by `get_score(i)`.
-
-# CELL ********************
-
-x_i = [round(i) for i in list(results.values())]
-print(x_i)
-assert alpha < 18000
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
 
 # CELL ********************
 
@@ -276,7 +263,7 @@ plt.show()
 
 # # Step 3: Find the best parameter value
 # 
-# Given the results, which value for `alpha` seems best for the random forest model?  Use your answer to set the value of `alpha_best`.
+# Given the results, which value for `alpha` seems best for the ridge regression model? Use your answer to set the value of `alpha_best`.
 
 # CELL ********************
 
@@ -314,4 +301,3 @@ step_3.solution()
 # 
 # # Keep going
 # 
-

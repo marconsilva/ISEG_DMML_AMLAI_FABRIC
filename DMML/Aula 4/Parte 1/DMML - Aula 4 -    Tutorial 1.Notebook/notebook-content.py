@@ -192,8 +192,12 @@ import scipy.optimize as opt
 from sklearn import preprocessing
 %matplotlib inline 
 import matplotlib.pyplot as plt
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+except ImportError:
+    mlflow = None
+if mlflow is not None:
+    mlflow.autolog(disable=True)
 
 
 # METADATA ********************

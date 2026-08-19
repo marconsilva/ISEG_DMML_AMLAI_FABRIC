@@ -225,8 +225,8 @@ q4.check()
 
 # CELL ********************
 
-q4.hint()
-q4.solution()
+#q4.hint()
+#q4.solution()
 
 # METADATA ********************
 
@@ -241,4 +241,3 @@ q4.solution()
 # 
 # You've finished the Pandas micro-course.  Many data scientists feel efficiency with Pandas is the most useful and practical skill they have, because it allows you to progress quickly in any project you have.
 # 
-

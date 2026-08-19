@@ -42,7 +42,7 @@
 
 # CELL ********************
 
-pip install Mlxtend
+%pip install mlxtend
 
 # METADATA ********************
 
@@ -1062,4 +1062,3 @@ print('The accuracy of classifier with limited features: {:.2f}'.format(accuracy
 # MARKDOWN ********************
 
 # ## Kepp going
-

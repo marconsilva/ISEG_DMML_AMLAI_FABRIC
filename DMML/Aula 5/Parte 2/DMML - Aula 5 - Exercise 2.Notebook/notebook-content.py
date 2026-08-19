@@ -93,7 +93,9 @@ print("Setup Complete")
 
 # CELL ********************
 
-customers = pd.read_csv("Ecommerce Customers.txt")
+customers = pd.read_csv(
+    "/lakehouse/default/Files/DMML_Aula5/Ecommerce Customers.txt"
+)
 
 # METADATA ********************
 
@@ -476,7 +478,7 @@ step_3.solution()
 
 # CELL ********************
 
-sns.distplot((y_test-predictions),bins=50);
+sns.histplot(y_test - predictions, bins=50, kde=True)
 
 # METADATA ********************
 

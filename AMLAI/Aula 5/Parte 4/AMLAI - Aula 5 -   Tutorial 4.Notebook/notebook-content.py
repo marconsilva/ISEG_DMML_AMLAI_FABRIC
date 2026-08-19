@@ -335,4 +335,3 @@ show_extraction(
 # # Your Turn #
 # 
 # Move on to the [**Exercise**] where you'll explore sliding windows, learn about how *stacking* convolutional layers can increase the effective window size, and also learn about how convolution can be used with *one-dimensional* data, like time series.
-

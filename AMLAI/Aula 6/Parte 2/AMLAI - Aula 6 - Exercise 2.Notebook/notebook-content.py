@@ -24,7 +24,7 @@
 
 # CELL ********************
 
-pip install spacy 
+%pip install spacy
 
 # METADATA ********************
 
@@ -92,7 +92,9 @@ def load_data(csv_file, split=0.9):
     
     return texts[:split], train_labels, texts[split:], val_labels
 
-train_texts, train_labels, val_texts, val_labels = load_data('../input/nlp-course/yelp_ratings.csv')
+train_texts, train_labels, val_texts, val_labels = load_data(
+    '/lakehouse/default/Files/AMLAI_Aula6/yelp_ratings.csv'
+)
 
 # METADATA ********************
 
@@ -139,8 +141,8 @@ nlp = spacy.blank('en')
 textcat = nlp.add_pipe('textcat')
 
 # Add labels to text classifier
-textcat.add_label("ham")
-textcat.add_label("spam")
+textcat.add_label("POSITIVE")
+textcat.add_label("NEGATIVE")
 
 # Check your answer
 step_2.check()

@@ -212,8 +212,8 @@ step_3.a.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-step_3.a.hint()
-step_3.a.solution_plot()
+#step_3.a.hint()
+#step_3.a.solution_plot()
 
 # METADATA ********************
 
@@ -277,8 +277,8 @@ step_4.a.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-step_4.a.hint()
-step_4.a.solution_plot()
+#step_4.a.hint()
+#step_4.a.solution_plot()
 
 # METADATA ********************
 
@@ -340,8 +340,8 @@ step_5.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-step_5.hint()
-step_5.solution_plot()
+#step_5.hint()
+#step_5.solution_plot()
 
 # METADATA ********************
 
@@ -378,8 +378,8 @@ step_6.a.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-step_6.a.hint()
-step_6.a.solution_plot()
+#step_6.a.hint()
+#step_6.a.solution_plot()
 
 # METADATA ********************
 

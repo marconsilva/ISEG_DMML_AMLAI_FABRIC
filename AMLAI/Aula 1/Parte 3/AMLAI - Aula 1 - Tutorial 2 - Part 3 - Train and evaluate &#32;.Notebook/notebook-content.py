@@ -36,7 +36,7 @@
 # CELL ********************
 
 # Install imblearn for SMOTE using pip
-%pip install imblearn
+%pip install -q imbalanced-learn
 
 # MARKDOWN ********************
 
@@ -55,8 +55,17 @@
 # CELL ********************
 
 import pandas as pd
+import numpy as np
+from pathlib import Path
 SEED = 12345
-df_clean = spark.read.format("delta").load("Tables/df_clean").toPandas()
+IN_FABRIC = "spark" in globals()
+if IN_FABRIC:
+    df_clean = spark.read.format("delta").load("Tables/df_clean").toPandas()
+else:
+    local_path = Path.cwd() / "Tables" / "df_clean.csv"
+    if not local_path.exists():
+        raise FileNotFoundError("Run Part 2 first to create Tables/df_clean.csv.")
+    df_clean = pd.read_csv(local_path)
 
 # MARKDOWN ********************
 
@@ -126,9 +135,15 @@ X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.
 
 table_name = "df_test"
 # Create PySpark DataFrame from Pandas
-df_test=spark.createDataFrame(X_test)
-df_test.write.mode("overwrite").format("delta").save(f"Tables/{table_name}")
-print(f"Spark test DataFrame saved to delta table: {table_name}")
+if IN_FABRIC:
+    df_test = spark.createDataFrame(X_test)
+    df_test.write.mode("overwrite").format("delta").save(f"Tables/{table_name}")
+    print(f"Spark test DataFrame saved to delta table: {table_name}")
+else:
+    output_path = Path.cwd() / "Tables" / f"{table_name}.csv"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    X_test.to_csv(output_path, index=False)
+    print(f"Pandas test DataFrame saved to {output_path}")
 
 # MARKDOWN ********************
 
@@ -166,7 +181,7 @@ with mlflow.start_run(run_name="rfc1_sm") as run:
     rfc1_sm_run_id = run.info.run_id # Capture run_id for model prediction later
     print("run_id: {}; status: {}".format(rfc1_sm_run_id, run.info.status))
     # rfc1.fit(X_train,y_train) # Imbalanaced training data
-    rfc1_sm.fit(X_res, y_res.ravel()) # Balanced training data
+    rfc1_sm.fit(X_res, np.asarray(y_res).ravel()) # Balanced training data
     rfc1_sm.score(X_val, y_val)
     y_pred = rfc1_sm.predict(X_val)
     cr_rfc1_sm = classification_report(y_val, y_pred)
@@ -185,7 +200,7 @@ with mlflow.start_run(run_name="rfc2_sm") as run:
     rfc2_sm_run_id = run.info.run_id # Capture run_id for model prediction later
     print("run_id: {}; status: {}".format(rfc2_sm_run_id, run.info.status))
     # rfc2.fit(X_train,y_train) # Imbalanced training data
-    rfc2_sm.fit(X_res, y_res.ravel()) # Balanced training data
+    rfc2_sm.fit(X_res, np.asarray(y_res).ravel()) # Balanced training data
     rfc2_sm.score(X_val, y_val)
     y_pred = rfc2_sm.predict(X_val)
     cr_rfc2_sm = classification_report(y_val, y_pred)
@@ -211,7 +226,7 @@ lgbm_sm_model = LGBMClassifier(learning_rate = 0.07,
 with mlflow.start_run(run_name="lgbm_sm") as run:
     lgbm1_sm_run_id = run.info.run_id # Capture run_id for model prediction later
     # lgbm_sm_model.fit(X_train,y_train) # Imbalanced training data
-    lgbm_sm_model.fit(X_res, y_res.ravel()) # Balanced training data
+    lgbm_sm_model.fit(X_res, np.asarray(y_res).ravel()) # Balanced training data
     y_pred = lgbm_sm_model.predict(X_val)
     accuracy = accuracy_score(y_val, y_pred)
     cr_lgbm_sm = classification_report(y_val, y_pred)

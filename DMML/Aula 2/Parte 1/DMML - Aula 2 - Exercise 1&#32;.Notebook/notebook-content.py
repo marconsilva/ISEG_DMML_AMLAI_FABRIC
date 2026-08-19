@@ -246,7 +246,7 @@ step_3.a.check()
 # CELL ********************
 
 #_COMMENT_IF(PROD)_
-step_3.b.hint()
+#step_3.b.hint()
 
 # METADATA ********************
 

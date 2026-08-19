@@ -46,7 +46,7 @@ import pandas as pd
 # 
 # As an example, we'll look at data about home prices in Melbourne, Australia. In the hands-on exercises, you will apply the same processes to a new dataset, which has home prices in Iowa.
 # 
-# The example (Melbourne) data is at the file path **`/lakehouse/default/Files/DMML_Aula0/melbourne-housing-snapshot/melb_data.csv`**.
+# The example (Melbourne) data is at the file path **`/lakehouse/default/Files/DMML_Aula1/melbourne-housing-snapshot/melb_data.csv`**.
 # 
 # We load and explore the data with the following commands:
 
@@ -80,4 +80,3 @@ melbourne_data.describe()
 # 
 # # Your Turn
 # Get started with your [first coding exercise] in the exercise notebook
-

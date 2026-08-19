@@ -35,6 +35,7 @@ import os
 # Disable GPU and suppress CUDA warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # METADATA ********************
 
@@ -52,7 +53,7 @@ from learntools.computer_vision.ex6 import *
 
 from tensorflow import keras
 from tensorflow.keras import layers
-from tensorflow.keras.layers.experimental import preprocessing
+preprocessing = layers
 
 # Imports
 import os, warnings
@@ -61,7 +62,6 @@ from matplotlib import gridspec
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.preprocessing import image_dataset_from_directory
 
 # Reproducability
 def set_seed(seed=31415):
@@ -80,8 +80,8 @@ warnings.filterwarnings("ignore") # to clean up output cells
 
 
 # Load training and validation sets
-ds_train_ = image_dataset_from_directory(
-    '../input/car-or-truck/train',
+ds_train_ = tf.keras.utils.image_dataset_from_directory(
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'car-or-truck', 'train'),
     labels='inferred',
     label_mode='binary',
     image_size=[128, 128],
@@ -89,8 +89,8 @@ ds_train_ = image_dataset_from_directory(
     batch_size=64,
     shuffle=True,
 )
-ds_valid_ = image_dataset_from_directory(
-    '../input/car-or-truck/valid',
+ds_valid_ = tf.keras.utils.image_dataset_from_directory(
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'car-or-truck', 'valid'),
     labels='inferred',
     label_mode='binary',
     image_size=[128, 128],
@@ -104,7 +104,7 @@ def convert_to_float(image, label):
     image = tf.image.convert_image_dtype(image, dtype=tf.float32)
     return image, label
 
-AUTOTUNE = tf.data.experimental.AUTOTUNE
+AUTOTUNE = tf.data.AUTOTUNE
 ds_train = (
     ds_train_
     .map(convert_to_float)
@@ -277,23 +277,23 @@ model = keras.Sequential([
     # ____,
 
     # Block One
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Block Two
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Block Three
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'),
     layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Head
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Flatten(),
     layers.Dense(8, activation='relu'),
     layers.Dense(1, activation='sigmoid'),
@@ -324,23 +324,23 @@ model = keras.Sequential([
     preprocessing.RandomRotation(factor=0.10),
     
     # Block One
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Block Two
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Block Three
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'),
     layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Head
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Flatten(),
     layers.Dense(8, activation='relu'),
     layers.Dense(1, activation='sigmoid'),
@@ -370,23 +370,23 @@ model = keras.Sequential([
     preprocessing.RandomFlip(mode='horizontal'),
     
     # Block One
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Block Two
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Block Three
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'),
     layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Head
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Flatten(),
     layers.Dense(8, activation='relu'),
     layers.Dense(1, activation='sigmoid'),
@@ -415,23 +415,23 @@ model = keras.Sequential([
     preprocessing.RandomRotation(factor=0.15),
     
     # Block One
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Block Two
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Block Three
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'),
     layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Head
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Flatten(),
     layers.Dense(8, activation='relu'),
     layers.Dense(1, activation='sigmoid'),
@@ -460,23 +460,23 @@ model = keras.Sequential([
     preprocessing.RandomRotation(factor=0.10),
     
     # Block One
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Block Two
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Block Three
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'),
     layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'),
     layers.MaxPool2D(),
 
     # Head
-    layers.BatchNormalization(renorm=True),
+    layers.BatchNormalization(),
     layers.Flatten(),
     layers.Dense(8, activation='relu'),
     layers.Dense(1, activation='sigmoid'),

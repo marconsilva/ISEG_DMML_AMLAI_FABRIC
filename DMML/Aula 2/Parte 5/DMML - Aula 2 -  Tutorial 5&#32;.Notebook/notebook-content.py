@@ -112,12 +112,12 @@ sns.histplot(iris_data['Petal Length (cm)'])
 # 
 # The next type of plot is a **kernel density estimate (KDE)** plot.  In case you're not familiar with KDE plots, you can think of it as a smoothed histogram.   
 # 
-# To make a KDE plot, we use the `sns.kdeplot` command.  Setting `shade=True` colors the area below the curve (_and `data=` chooses the column we would like to plot_).
+# To make a KDE plot, we use the `sns.kdeplot` command.  Setting `fill=True` colors the area below the curve (_and `data=` chooses the column we would like to plot_).
 
 # CELL ********************
 
 # KDE plot 
-sns.kdeplot(data=iris_data['Petal Length (cm)'], shade=True)
+sns.kdeplot(data=iris_data['Petal Length (cm)'], fill=True)
 
 # METADATA ********************
 
@@ -180,12 +180,12 @@ plt.title("Histogram of Petal Lengths, by Species")
 
 # MARKDOWN ********************
 
-# We can also create a KDE plot for each species by using `sns.kdeplot` (_as above_).  The functionality for `data`, `x`, and `hue` are identical to when we used `sns.histplot` above.  Additionally, we set `shade=True` to color the area below each curve.
+# We can also create a KDE plot for each species by using `sns.kdeplot` (_as above_).  The functionality for `data`, `x`, and `hue` are identical to when we used `sns.histplot` above.  Additionally, we set `fill=True` to color the area below each curve.
 
 # CELL ********************
 
 # KDE plots for each species
-sns.kdeplot(data=iris_data, x='Petal Length (cm)', hue='Species', shade=True)
+sns.kdeplot(data=iris_data, x='Petal Length (cm)', hue='Species', fill=True)
 
 # Add title
 plt.title("Distribution of Petal Lengths, by Species")

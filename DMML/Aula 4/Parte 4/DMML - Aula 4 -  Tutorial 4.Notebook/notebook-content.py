@@ -55,8 +55,12 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 %matplotlib inline
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+except ImportError:
+    mlflow = None
+if mlflow is not None:
+    mlflow.autolog(disable=True)
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -129,7 +133,12 @@ df.drop(columns=["Time"], inplace=True)
 
 # CELL ********************
 
-X_train, X_test, Y_train, Y_test = train_test_split(df.drop(columns=["Class"]), df.Class)
+X_train, X_test, Y_train, Y_test = train_test_split(
+    df.drop(columns=["Class"]),
+    df.Class,
+    random_state=42,
+    stratify=df.Class,
+)
 
 
 # METADATA ********************
@@ -149,13 +158,11 @@ X_train, X_test, Y_train, Y_test = train_test_split(df.drop(columns=["Class"]), 
 
 # CELL ********************
 
-# MAGIC %%capture
-# MAGIC 
-# MAGIC lgr = LogisticRegression(random_state=0)
-# MAGIC lgr.fit(X_train, Y_train)
-# MAGIC 
-# MAGIC preds = lgr.predict(X_test)
-# MAGIC pred_probas = lgr.predict_proba(X_test)
+lgr = LogisticRegression(random_state=0, max_iter=1000)
+lgr.fit(X_train, Y_train)
+
+preds = lgr.predict(X_test)
+pred_probas = lgr.predict_proba(X_test)
 
 # METADATA ********************
 

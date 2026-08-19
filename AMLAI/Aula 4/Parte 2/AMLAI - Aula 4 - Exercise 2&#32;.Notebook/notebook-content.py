@@ -51,6 +51,7 @@ import os
 # Disable GPU and suppress CUDA warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # METADATA ********************
 
@@ -101,7 +102,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras import callbacks
 
-spotify = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula4/spotify.csv')
+spotify = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'spotify.csv'))
 
 X = spotify.copy().dropna()
 y = X.pop('track_popularity')

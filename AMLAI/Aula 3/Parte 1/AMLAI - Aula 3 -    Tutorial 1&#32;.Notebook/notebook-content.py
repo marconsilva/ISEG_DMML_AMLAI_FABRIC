@@ -89,8 +89,7 @@
 
 # CELL ********************
 
-%pip install --upgrade pip
-%pip install tensorflow
+%pip install -q tensorflow
 
 
 # METADATA ********************
@@ -123,7 +122,8 @@ from tensorflow.keras import layers
 
 # Create a network with 1 linear unit
 model = keras.Sequential([
-    layers.Dense(units=1, input_shape=[3])
+    keras.Input(shape=[3]),
+    layers.Dense(units=1)
 ])
 
 print(model)
@@ -153,4 +153,3 @@ print(model)
 # # Your Turn #
 # 
 # [**Define a linear model**] for the *Red Wine Quality* dataset.
-

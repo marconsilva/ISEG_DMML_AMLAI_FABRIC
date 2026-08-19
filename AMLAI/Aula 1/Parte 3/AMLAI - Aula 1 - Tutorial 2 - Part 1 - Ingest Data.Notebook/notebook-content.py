@@ -83,7 +83,10 @@
 
 IS_CUSTOM_DATA = False  # if TRUE, dataset has to be uploaded manually
 
-DATA_ROOT = "/lakehouse/default"
+from pathlib import Path
+
+FABRIC_DATA_ROOT = Path("/lakehouse/default")
+DATA_ROOT = FABRIC_DATA_ROOT if FABRIC_DATA_ROOT.exists() else Path.cwd()
 DATA_FOLDER = "Files/churn"  # folder with data files
 DATA_FILE = "churn.csv"  # data file name
 
@@ -103,26 +106,21 @@ DATA_FILE = "churn.csv"  # data file name
 
 # CELL ********************
 
-import os, requests
+import requests
 if not IS_CUSTOM_DATA:
-# Using synapse blob, this can be done in one line
-
-# Download demo data files into lakehouse if not exist
+    # Download demo data files into the lakehouse, or a local Files folder.
     remote_url = "https://synapseaisolutionsa.blob.core.windows.net/public/bankcustomerchurn"
     file_list = [DATA_FILE]
-    download_path = f"{DATA_ROOT}/{DATA_FOLDER}/raw"
+    download_path = DATA_ROOT / DATA_FOLDER / "raw"
 
-    if not os.path.exists("/lakehouse/default"):
-        raise FileNotFoundError(
-            "Default lakehouse not found, please add a lakehouse and restart the session."
-        )
-    os.makedirs(download_path, exist_ok=True)
+    download_path.mkdir(parents=True, exist_ok=True)
     for fname in file_list:
-        if not os.path.exists(f"{download_path}/{fname}"):
-            r = requests.get(f"{remote_url}/{fname}", timeout=30)
-            with open(f"{download_path}/{fname}", "wb") as f:
-                f.write(r.content)
-    print("Downloaded demo data files into lakehouse.")
+        target = download_path / fname
+        if not target.exists():
+            response = requests.get(f"{remote_url}/{fname}", timeout=30)
+            response.raise_for_status()
+            target.write_bytes(response.content)
+    print(f"Downloaded demo data files to {download_path}.")
 
 # METADATA ********************
 

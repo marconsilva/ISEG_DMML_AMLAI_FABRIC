@@ -100,10 +100,12 @@
 
 # CELL ********************
 
-# Setup key accesses to Azure AI Search
-aisearch_index_name = "indexmsfb" # TODO: Create a new index name: must only contain lowercase, numbers, and dashes
-aisearch_api_key = "" # TODO: Fill in your API key from Azure AI Search
-aisearch_endpoint = "https://gptkb-w3rdooxxajzsm.search.windows.net" # TODO: Provide the url endpoint for your created Azure AI Search 
+# Configure credentials in the Fabric environment rather than storing them in
+# notebook source.
+import os
+aisearch_index_name = os.getenv("AZURE_SEARCH_INDEX_NAME", "indexmsfb")
+aisearch_api_key = os.getenv("AZURE_SEARCH_API_KEY", "")
+aisearch_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT", "")
 
 # METADATA ********************
 
@@ -159,9 +161,21 @@ from azure.search.documents.indexes.models import (
 from synapse.ml.featurize.text import PageSplitter
 from synapse.ml.services.openai import OpenAIEmbedding
 from synapse.ml.services.openai import OpenAIChatCompletion
+from synapse.ml.fabric.service_discovery import get_fabric_env_config
+from synapse.ml.fabric.token_utils import TokenUtils
 import ipywidgets as widgets  
 from IPython.display import display as w_display
-import openai
+
+if not aisearch_api_key or not aisearch_endpoint:
+    raise ValueError(
+        "Set AZURE_SEARCH_API_KEY and AZURE_SEARCH_ENDPOINT in the Fabric environment."
+    )
+
+fabric_env_config = get_fabric_env_config().fabric_env_config
+fabric_openai_headers = {
+    "Authorization": TokenUtils().get_openai_auth_header(),
+    "Content-Type": "application/json",
+}
 
 # METADATA ********************
 
@@ -235,9 +249,9 @@ display(spark_df)
 spark_df.write.mode("overwrite").format("delta").saveAsTable("dbo.cmu_qa_08_09")
 
 
-# Read parquet table from default lakehouse into spark dataframe
-#df_dataset = spark.sql("SELECT * FROM cmu_qa_08_09")
-#display(df_dataset)
+# Read the saved table from the default lakehouse into a Spark DataFrame.
+df_dataset = spark.table("dbo.cmu_qa_08_09")
+display(df_dataset)
 
 # METADATA ********************
 
@@ -472,7 +486,7 @@ def insertToAISearch(Id, ArticleTitle, ExtractedPath, Chunk, Embedding):
                     "ArticleTitle": ArticleTitle,
                     "ExtractedPath": ExtractedPath,
                     "Chunk": Chunk, 
-                    "Embedding": Embedding.tolist(),
+                    "Embedding": list(Embedding),
                     "@search.action": "upload",
                 },
             ]
@@ -588,8 +602,18 @@ def get_context_source(question, topN=3):
 
     deployment_id = "text-embedding-ada-002"
 
-    query_embedding = openai.Embedding.create(deployment_id=deployment_id,
-                                     input=question).data[0].embedding
+    embedding_url = (
+        f"{fabric_env_config.ml_workload_endpoint}cognitive/openai/openai/deployments/"
+        f"{deployment_id}/embeddings?api-version=2024-02-15-preview"
+    )
+    embedding_response = requests.post(
+        embedding_url,
+        headers=fabric_openai_headers,
+        json={"input": question},
+        timeout=120,
+    )
+    embedding_response.raise_for_status()
+    query_embedding = embedding_response.json()["data"][0]["embedding"]
 
     vector_query = VectorizedQuery(vector=query_embedding, k_nearest_neighbors=topN, fields="Embedding")
 
@@ -649,13 +673,19 @@ def get_answer(question, context):
             "content": question + "\n" + context,
         },
     )
-    response = openai.ChatCompletion.create(
-        deployment_id='gpt-35-turbo-0125', # see the note in the cell below for an alternative deployment_id.
-        messages= messages,
-        temperature=0,
+    deployment_id = "gpt-5.1"
+    chat_url = (
+        f"{fabric_env_config.ml_workload_endpoint}cognitive/openai/openai/deployments/"
+        f"{deployment_id}/chat/completions?api-version=2024-02-15-preview"
     )
-
-    return response.choices[0].message.content
+    response = requests.post(
+        chat_url,
+        headers=fabric_openai_headers,
+        json={"messages": messages},
+        timeout=120,
+    )
+    response.raise_for_status()
+    return response.json()["choices"][0]["message"]["content"]
 
 
 # METADATA ********************

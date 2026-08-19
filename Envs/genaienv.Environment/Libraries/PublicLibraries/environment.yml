@@ -1,8 +1,6 @@
 dependencies:
-  - python=3.9
   - pip
   - pip:
-      - python-dotenv==1.0.0
-      - azure-search-documents==11.4.0
-      - azure-keyvault==4.2.0
-      - azure-identity==1.16.0
+      # Fabric supplies Python, Spark, pandas, NumPy, and the core ML stack.
+      - azure-search-documents>=11.4,<12
+      - openai>=1,<2

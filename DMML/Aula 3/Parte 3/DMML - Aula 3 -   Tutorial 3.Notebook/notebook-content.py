@@ -220,7 +220,7 @@ day_of_month_landslides.head()
 day_of_month_landslides = day_of_month_landslides.dropna()
 
 # plot the day of the month
-sns.distplot(day_of_month_landslides, kde=False, bins=31)
+sns.histplot(day_of_month_landslides, kde=False, bins=31)
 
 # METADATA ********************
 

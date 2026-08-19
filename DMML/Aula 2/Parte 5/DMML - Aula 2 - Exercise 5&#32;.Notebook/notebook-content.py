@@ -124,8 +124,8 @@ step_1.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-step_1.hint()
-step_1.solution()
+#step_1.hint()
+#step_1.solution()
 
 # METADATA ********************
 
@@ -220,8 +220,8 @@ step_3.a.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-step_3.a.hint()
-step_3.a.solution_plot()
+#step_3.a.hint()
+#step_3.a.solution_plot()
 
 # METADATA ********************
 
@@ -306,7 +306,7 @@ step_4.a.check()
 # CELL ********************
 
 #_COMMENT_IF(PROD)_
-step_4.b.hint()
+#step_4.b.hint()
 
 # METADATA ********************
 

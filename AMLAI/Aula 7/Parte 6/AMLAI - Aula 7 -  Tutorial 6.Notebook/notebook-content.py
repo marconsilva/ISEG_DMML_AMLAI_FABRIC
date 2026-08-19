@@ -59,7 +59,7 @@ import pandas as pd
 N = 20
 ts = pd.Series(
     np.arange(N),
-    index=pd.period_range(start='2010', freq='A', periods=N, name='Year'),
+    index=pd.period_range(start='2010', freq='Y', periods=N, name='Year'),
     dtype=pd.Int8Dtype,
 )
 

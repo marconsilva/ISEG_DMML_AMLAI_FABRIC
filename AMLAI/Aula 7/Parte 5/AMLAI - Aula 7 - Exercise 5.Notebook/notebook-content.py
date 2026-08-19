@@ -60,7 +60,6 @@ store_sales = pd.read_csv(
         'sales': 'float32',
     },
     parse_dates=['date'],
-    infer_datetime_format=True,
 )
 store_sales['date'] = store_sales.date.dt.to_period('D')
 store_sales = store_sales.set_index(['store_nbr', 'family', 'date']).sort_index()

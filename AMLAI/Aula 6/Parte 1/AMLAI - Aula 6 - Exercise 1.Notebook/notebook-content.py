@@ -28,7 +28,7 @@
 
 # CELL ********************
 
-pip install spacy
+%pip install spacy
 
 # METADATA ********************
 

@@ -80,6 +80,7 @@ import os
 # Disable GPU and suppress CUDA warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # METADATA ********************
 
@@ -97,7 +98,6 @@ from matplotlib import gridspec
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.preprocessing import image_dataset_from_directory
 
 import mlflow
 mlflow.autolog(disable=True)
@@ -119,8 +119,8 @@ warnings.filterwarnings("ignore") # to clean up output cells
 
 
 # Load training and validation sets
-ds_train_ = image_dataset_from_directory(
-    '/lakehouse/default/Files/AMLAI_Aula5/car-or-truck/train',
+ds_train_ = tf.keras.utils.image_dataset_from_directory(
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'car-or-truck', 'train'),
     labels='inferred',
     label_mode='binary',
     image_size=[128, 128],
@@ -128,8 +128,8 @@ ds_train_ = image_dataset_from_directory(
     batch_size=64,
     shuffle=True,
 )
-ds_valid_ = image_dataset_from_directory(
-    '/lakehouse/default/Files/AMLAI_Aula5/car-or-truck/valid',
+ds_valid_ = tf.keras.utils.image_dataset_from_directory(
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'car-or-truck', 'valid'),
     labels='inferred',
     label_mode='binary',
     image_size=[128, 128],
@@ -143,7 +143,7 @@ def convert_to_float(image, label):
     image = tf.image.convert_image_dtype(image, dtype=tf.float32)
     return image, label
 
-AUTOTUNE = tf.data.experimental.AUTOTUNE
+AUTOTUNE = tf.data.AUTOTUNE
 ds_train = (
     ds_train_
     .map(convert_to_float)

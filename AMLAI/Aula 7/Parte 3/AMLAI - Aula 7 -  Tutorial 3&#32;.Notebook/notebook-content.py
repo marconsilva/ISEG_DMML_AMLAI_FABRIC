@@ -310,7 +310,7 @@ plot_periodogram(tunnel.NumVehicles);
 
 from statsmodels.tsa.deterministic import CalendarFourier, DeterministicProcess
 
-fourier = CalendarFourier(freq="A", order=10)  # 10 sin/cos pairs for "A"nnual seasonality
+fourier = CalendarFourier(freq="A", order=10)  # 10 sin/cos pairs for annual seasonality
 
 dp = DeterministicProcess(
     index=tunnel.index,

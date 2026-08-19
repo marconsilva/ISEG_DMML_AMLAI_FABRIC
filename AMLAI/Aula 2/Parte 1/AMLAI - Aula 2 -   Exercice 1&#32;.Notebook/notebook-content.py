@@ -36,8 +36,11 @@ from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+    mlflow.autolog(disable=True)
+except ImportError:
+    mlflow = None
 
 plt.style.use('seaborn-v0_8-whitegrid')
 # Set Matplotlib defaults
@@ -273,7 +276,11 @@ def calculate_user_similarity(ratings_df):
                 # Find items both users have rated (non-zero)
                 mask = (user_i > 0) & (user_j > 0)
                 
-                if mask.sum() > 1:  # Need at least 2 common ratings
+                if (
+                    mask.sum() > 1
+                    and np.std(user_i[mask]) > 0
+                    and np.std(user_j[mask]) > 0
+                ):
                     # YOUR CODE HERE: Calculate Pearson correlation
                     corr, _ = ____
                     similarity_matrix[i, j] = corr if not np.isnan(corr) else 0
@@ -481,4 +488,3 @@ print(f"{'='*60}")
 # 
 # **Next Steps:**
 # In the next lesson, you'll learn about **Collaborative Filtering with Matrix Factorization**, which can handle sparse data better and scale to millions of users and items!
-

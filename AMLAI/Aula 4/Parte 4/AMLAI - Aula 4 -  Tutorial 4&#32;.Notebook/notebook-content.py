@@ -88,6 +88,7 @@ import os
 # Disable GPU and suppress CUDA warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # METADATA ********************
 
@@ -104,7 +105,7 @@ from IPython.display import display
 import mlflow
 mlflow.autolog(disable=True)
 
-ion = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula4/ion.csv', index_col=0)
+ion = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'ion.csv'), index_col=0)
 display(ion.head())
 
 df = ion.copy()

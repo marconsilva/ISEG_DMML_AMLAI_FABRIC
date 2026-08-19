@@ -87,8 +87,12 @@ print("Setup Complete")
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+except ImportError:
+    mlflow = None
+if mlflow is not None:
+    mlflow.autolog(disable=True)
 
 # Read the data
 X_full = pd.read_csv('/lakehouse/default/Files/DMML_Aula3/home-data-for-ml-course/train.csv', index_col='Id')

@@ -41,7 +41,7 @@
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # CELL ********************
@@ -92,7 +92,7 @@ df = pd.read_csv("/lakehouse/default/Files/DMML_Aula8/ames.csv")
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
@@ -123,7 +123,7 @@ q_1.check()
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
@@ -150,17 +150,13 @@ features = ____
 
 
 # Standardize
-#_UNCOMMENT_IF(PROD)_
-#X_scaled = X.loc[:, features]
-#_UNCOMMENT_IF(PROD)_
-#X_scaled = (X_scaled - X_scaled.mean(axis=0)) / X_scaled.std(axis=0)
+X_scaled = X.loc[:, features]
+X_scaled = (X_scaled - X_scaled.mean(axis=0)) / X_scaled.std(axis=0)
 
 
 # YOUR CODE HERE: Fit the KMeans model to X_scaled and create the cluster labels
-#_UNCOMMENT_IF(PROD)_
-#kmeans = KMeans(____, random_state=0)
-#_UNCOMMENT_IF(PROD)_
-#X["Cluster"] = ____
+kmeans = KMeans(____, random_state=0)
+X["Cluster"] = ____
 
 
 # Check your answer
@@ -170,171 +166,20 @@ q_2.check()
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-#_COMMENT_IF(PROD)_
 q_2.hint()
-#_COMMENT_IF(PROD)_
 q_2.solution()
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-#%%RM_IF(PROD)%%
-X = df.copy()
-y = X.pop("SalePrice")
-
-features = [
-    "TotalBsmtSF",
-    "FirstFlrSF",
-    "SecondFlrSF",
-    "GrLivArea",
-]
-
-# Standardize
-X_scaled = X.loc[:, features]
-X_scaled = (X_scaled - X_scaled.mean(axis=0)) / X_scaled.std(axis=0)
-
-kmeans = KMeans(n_clusters=10, n_init=10, random_state=0)
-X["Cluster"] = kmeans.fit_predict(X_scaled)
-
-q_2.assert_check_failed()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-#%%RM_IF(PROD)%%
-X = df.copy()
-y = X.pop("SalePrice")
-
-features = [
-    "LotArea",
-    "TotalBsmtSF",
-    "FirstFlrSF",
-    "SecondFlrSF",
-    "GrLivArea",
-]
-
-# Standardize
-X_scaled = X.loc[:, features]
-X_scaled = (X_scaled - X_scaled.mean(axis=0)) / X_scaled.std(axis=0)
-
-kmeans = KMeans(n_clusters=15, n_init=10, random_state=0)
-X["Cluster"] = kmeans.fit_predict(X_scaled)
-
-q_2.assert_check_failed()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-#%%RM_IF(PROD)%%
-X = df.copy()
-y = X.pop("SalePrice")
-
-features = [
-    "LotArea",
-    "TotalBsmtSF",
-    "FirstFlrSF",
-    "SecondFlrSF",
-    "GrLivArea",
-]
-
-# Standardize
-X_scaled = X.loc[:, features]
-X_scaled = (X_scaled - X_scaled.mean(axis=0)) / X_scaled.std(axis=0)
-
-kmeans = KMeans(n_clusters=10, n_init=10, random_state=0)
-X["Cluster"] = kmeans.fit_predict(X[features])
-
-q_2.assert_check_failed()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-#%%RM_IF(PROD)%%
-X = df.copy()
-y = X.pop("SalePrice")
-
-features = [
-    "LotArea",
-    "TotalBsmtSF",
-    "FirstFlrSF",
-    "SecondFlrSF",
-    "GrLivArea",
-]
-
-# Standardize
-X_scaled = X.loc[:, features]
-X_scaled = (X_scaled - X_scaled.mean(axis=0)) / X_scaled.std(axis=0)
-
-kmeans = KMeans(n_clusters=10, n_init=10, random_state=1)
-X["Cluster"] = kmeans.fit_predict(X_scaled)
-
-q_2.assert_check_failed()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-#%%RM_IF(PROD)%%
-X = df.copy()
-y = X.pop("SalePrice")
-
-features = [
-    "LotArea",
-    "TotalBsmtSF",
-    "FirstFlrSF",
-    "SecondFlrSF",
-    "GrLivArea",
-]
-
-# Standardize
-X_scaled = X.loc[:, features]
-X_scaled = (X_scaled - X_scaled.mean(axis=0)) / X_scaled.std(axis=0)
-
-kmeans = KMeans(n_clusters=10, n_init=10, random_state=0)
-X["Cluster"] = kmeans.fit_predict(X_scaled)
-
-q_2.assert_check_passed()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
@@ -359,7 +204,7 @@ sns.relplot(
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
@@ -374,7 +219,7 @@ score_dataset(X, y)
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
@@ -393,15 +238,12 @@ kmeans = KMeans(n_clusters=10, n_init=10, random_state=0)
 
 
 # YOUR CODE HERE: Create the cluster-distance features using `fit_transform`
-#_UNCOMMENT_IF(PROD)_
-#X_cd = ____
+X_cd = ____
 
 
 # Label features and join to dataset
-#_UNCOMMENT_IF(PROD)_
-#X_cd = pd.DataFrame(X_cd, columns=[f"Centroid_{i}" for i in range(X_cd.shape[1])])
-#_UNCOMMENT_IF(PROD)_
-#X = X.join(X_cd)
+X_cd = pd.DataFrame(X_cd, columns=[f"Centroid_{i}" for i in range(X_cd.shape[1])])
+X = X.join(X_cd)
 
 
 # Check your answer
@@ -411,64 +253,20 @@ q_3.check()
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-#_COMMENT_IF(PROD)_
 q_3.hint()
-#_COMMENT_IF(PROD)_
 q_3.solution()
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-#%%RM_IF(PROD)%%
-kmeans = KMeans(n_clusters=10, n_init=10, random_state=0)
-
-# YOUR CODE HERE: Create the cluster-distance features using `fit_transform`
-X_cd = kmeans.fit_transform(X[features])
-
-# Label features and join to dataset
-X_cd = pd.DataFrame(X_cd, columns=[f"Centroid_{i}" for i in range(X_cd.shape[1])])
-#X = X.join(X_cd)
-
-q_3.assert_check_failed()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-#%%RM_IF(PROD)%%
-kmeans = KMeans(n_clusters=10, n_init=10, random_state=0)
-
-# YOUR CODE HERE: Create the cluster-distance features using `fit_transform`
-X_cd = kmeans.fit_transform(X_scaled)
-
-# Label features and join to dataset
-X_cd = pd.DataFrame(X_cd, columns=[f"Centroid_{i}" for i in range(X_cd.shape[1])])
-X = X.join(X_cd)
-
-q_3.assert_check_passed()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
@@ -483,7 +281,7 @@ score_dataset(X, y)
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************

@@ -133,7 +133,7 @@ step_1.check()
 # CELL ********************
 
 # Create the list of features below
-feature_names = ___
+feature_names = ____
 
 # Select data corresponding to features in feature_names
 X = ____
@@ -275,4 +275,3 @@ step_4.check()
 
 # It's natural to ask how accurate the model's predictions will be and how you can improve that. That will be you're next step.
 # 
-

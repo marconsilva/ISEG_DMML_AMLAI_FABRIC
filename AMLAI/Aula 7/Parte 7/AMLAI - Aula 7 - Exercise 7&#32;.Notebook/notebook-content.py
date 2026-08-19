@@ -129,7 +129,7 @@ q_2.solution()
 
 # CELL ********************
 
-!pip install pmdarima
+%pip install pmdarima
 
 # METADATA ********************
 
@@ -139,8 +139,6 @@ q_2.solution()
 # META }
 
 # CELL ********************
-
-from statsmodels.tsa.arima_model import ARIMA
 
 import pmdarima as pm
 

@@ -34,7 +34,7 @@
 
 # CELL ********************
 
-%pip install scikit-image tensorflow 
+%pip install scikit-image tensorflow tf-keras
 
 
 # METADATA ********************
@@ -51,6 +51,8 @@ import os
 # Disable GPU and suppress CUDA warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+os.environ['TF_USE_LEGACY_KERAS'] = '1'
+DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # METADATA ********************
 
@@ -91,7 +93,9 @@ plt.rc('image', cmap='magma')
 # CELL ********************
 
 # Read image
-image_path = '/lakehouse/default/Files/AMLAI_Aula5/computer-vision-resources/car_illus.jpg'
+image_path = os.path.join(
+    DATA_ROOT, 'AMLAI_Aula5', 'computer-vision-resources', 'car_illus.jpg'
+)
 image = tf.io.read_file(image_path)
 image = tf.io.decode_jpeg(image, channels=1)
 image = tf.image.resize(image, size=[400, 400])
@@ -336,11 +340,11 @@ plt.show();
 
 from tensorflow import keras
 from tensorflow.keras import layers
-from tensorflow.keras.preprocessing import image_dataset_from_directory
 
 # Load VGG16
 pretrained_base = tf.keras.models.load_model(
-    '/lakehouse/default/Files/AMLAI_Aula5/cv-course-models/cv-course-models/vgg16-pretrained-base',
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'cv-course-models',
+                 'cv-course-models', 'vgg16-pretrained-base'),
 )
 
 model = keras.Sequential([
@@ -350,8 +354,8 @@ model = keras.Sequential([
 ])
 
 # Load dataset
-ds = image_dataset_from_directory(
-    '/lakehouse/default/Files/AMLAI_Aula5/car-or-truck/train',
+ds = tf.keras.utils.image_dataset_from_directory(
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'car-or-truck', 'train'),
     labels='inferred',
     label_mode='binary',
     image_size=[128, 128],
@@ -443,4 +447,3 @@ q_3.hint()
 # # Keep Going #
 # 
 # In the next lesson, we'll conclude our discussion of the feature extraction operations with **sliding windows**, the typical way of describing how the convolution and pooling operations scan over an image. We'll describe here the final two parameters in the `Conv2D` and `MaxPool2D` layers: `strides` and `padding`. 
-

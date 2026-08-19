@@ -34,8 +34,7 @@
 
 # CELL ********************
 
-%pip install --upgrade pip
-%pip install tensorflow
+%pip install -q tensorflow
 
 # METADATA ********************
 
@@ -66,8 +65,11 @@ import tensorflow as tf
 # Setup plotting
 import matplotlib.pyplot as plt
 
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+    mlflow.autolog(disable=True)
+except ImportError:
+    mlflow = None
 
 plt.style.use('seaborn-v0_8-whitegrid')
 # Set Matplotlib defaults
@@ -96,8 +98,20 @@ from learntools.deep_learning_intro.ex2 import *
 # CELL ********************
 
 import pandas as pd
+from pathlib import Path
 
-concrete = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula3/concrete.csv')
+data_candidates = [
+    Path('/lakehouse/default/Files/AMLAI_Aula3/concrete.csv'),
+    Path.cwd() / 'Files' / 'AMLAI_Aula3' / 'concrete.csv',
+    Path.cwd() / 'concrete.csv',
+]
+data_path = next((path for path in data_candidates if path.exists()), data_candidates[0])
+if not data_path.exists():
+    raise FileNotFoundError(
+        "Upload concrete.csv to Files/AMLAI_Aula3 in the attached lakehouse "
+        "or place it in a local Files/AMLAI_Aula3 folder."
+    )
+concrete = pd.read_csv(data_path)
 concrete.head()
 
 # METADATA ********************
@@ -208,7 +222,6 @@ model = keras.Sequential([
 
 # Check your answer
 q_3.check()
-
 # METADATA ********************
 
 # META {
@@ -264,4 +277,3 @@ plt.show()
 # # Congratulations #
 # 
 # You have finished the intro to Deep Learning in the next lessons you will learn more on how to train and optimize the Neural Networks.
-

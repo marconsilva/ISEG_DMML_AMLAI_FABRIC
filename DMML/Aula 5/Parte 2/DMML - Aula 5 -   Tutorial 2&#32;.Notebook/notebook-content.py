@@ -440,9 +440,7 @@ le = LabelEncoder()
 df1['type'] = le.fit_transform(df1['type'])
 
 # Encoding 'region' (One Hot Encoding)
-from sklearn.preprocessing import OneHotEncoder
-ohe = OneHotEncoder(drop='first', handle_unknown='ignore')
-ohe = pd.get_dummies(data=df1, columns=['region'])
+ohe = pd.get_dummies(data=df1, columns=['region'], drop_first=True)
 
 df1 = ohe.drop(['Date','4046','4225','4770','Small Bags','Large Bags','XLarge Bags'], axis=1)
 
@@ -637,8 +635,12 @@ X_test = Standard_Scaler (X_test, col_names)
 # CELL ********************
 
 from sklearn.linear_model import LinearRegression
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+except ImportError:
+    mlflow = None
+if mlflow is not None:
+    mlflow.autolog(disable=True)
 
 
 # Creating and training model

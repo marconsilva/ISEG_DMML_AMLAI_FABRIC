@@ -29,6 +29,17 @@
 
 # CELL ********************
 
+%pip install /lakehouse/default/Files/Env/learntools-0.3.4-py2.py3-none-any.whl
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
 # Setup feedback system
 from learntools.core import binder
 binder.bind(globals())
@@ -41,6 +52,7 @@ from xgboost import XGBRegressor
 
 
 def score_dataset(X, y, model=XGBRegressor()):
+    X = X.copy()
     # Label encoding for categoricals
     for colname in X.select_dtypes(["category", "object"]):
         X[colname], _ = X[colname].factorize()
@@ -316,4 +328,3 @@ score_dataset(X_new, y)
 
 # # Keep Going #
 # 
-

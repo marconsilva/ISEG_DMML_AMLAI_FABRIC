@@ -52,6 +52,7 @@ import os
 # Disable GPU and suppress CUDA warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # METADATA ********************
 
@@ -118,7 +119,9 @@ plt.rc('image', cmap='magma')
 warnings.filterwarnings("ignore") # to clean up output cells
 
 # Read image
-image_path = '/lakehouse/default/Files/AMLAI_Aula5/computer-vision-resources/car_feature.jpg'
+image_path = os.path.join(
+    DATA_ROOT, 'AMLAI_Aula5', 'computer-vision-resources', 'car_feature.jpg'
+)
 image = tf.io.read_file(image_path)
 image = tf.io.decode_jpeg(image)
 
@@ -231,4 +234,3 @@ plt.show();
 # # Your Turn #
 # 
 # Now, start the [**Exercise**] to finish the extraction you started in Lesson 2, see this invariance property in action, and also learn about another kind of pooling: **average pooling**!
-

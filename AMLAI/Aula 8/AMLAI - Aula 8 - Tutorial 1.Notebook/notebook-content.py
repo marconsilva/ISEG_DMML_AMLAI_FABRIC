@@ -46,26 +46,37 @@
 
 # CELL ********************
 
-from synapse.ml.mlflow import get_mlflow_env_config
+from synapse.ml.fabric.service_discovery import get_fabric_env_config
+from synapse.ml.fabric.token_utils import TokenUtils
 
-mlflow_env_configs = get_mlflow_env_config()
-access_token = mlflow_env_configs.driver_aad_token
-
-prebuilt_AI_base_url = mlflow_env_configs.workload_endpoint + "cognitive/openai/"
-print("workload endpoint for OpenAI: \n" + prebuilt_AI_base_url)
+fabric_env_config = get_fabric_env_config().fabric_env_config
 
 
-deployment_name = "text-davinci-003" # deployment name could be `text-davinci-003` or `code-cushman-002`
-openai_url = prebuilt_AI_base_url + f"openai/deployments/{deployment_name}/completions?api-version=2022-12-01"
-print("The full uri of Completions is: ", openai_url)
+deployment_name = "gpt-5.1"
+openai_url = (
+    f"{fabric_env_config.ml_workload_endpoint}cognitive/openai/openai/deployments/"
+    f"{deployment_name}/chat/completions?api-version=2024-02-15-preview"
+)
+print("The full URI of Chat Completions is:", openai_url)
 
+"""
+Legacy authentication placeholder retained from the original export.
+access_token = ""
 post_headers = {
+    "Authorization": TokenUtils().get_openai_auth_header(),
     "Content-Type" : "application/json",
     "Authorization" : "Bearer {}".format(access_token)
+    , "Authorization": TokenUtils().get_openai_auth_header(),
 }
 
 post_body = {
     "prompt": "empty prompt, need to fill in the content before the request",
+}
+"""
+
+post_headers = {
+    "Authorization": TokenUtils().get_openai_auth_header(),
+    "Content-Type": "application/json",
 }
 
 # METADATA ********************
@@ -78,6 +89,7 @@ post_body = {
 # CELL ********************
 
 import json
+import re
 import uuid
 import requests
 from pprint import pprint
@@ -85,23 +97,20 @@ from pprint import pprint
 
 
 def get_model_response_until_empty(prompt:str, openai_url:str):
-    post_body["prompt"] = ""
-    pr_aux = prompt
-
-    while True:
-        post_body["prompt"] = post_body["prompt"] + prompt
-        response = requests.post(openai_url, headers=post_headers, json=post_body)
-        if response.status_code == 200:
-            prompt = response.json()["choices"][0]["text"]
-            if len(prompt) == 0:
-                result = post_body["prompt"]
-                break
-        else:
-            print(response.headers)
-            result = response.content
-            break
-
-    result = result[len(pr_aux):].strip()
+    post_body = {
+        "messages": [
+            {"role": "system", "content": "Follow the user's instructions precisely."},
+            {"role": "user", "content": prompt},
+        ]
+    }
+    response = requests.post(
+        openai_url,
+        headers=post_headers,
+        json=post_body,
+        timeout=120,
+    )
+    response.raise_for_status()
+    result = response.json()["choices"][0]["message"]["content"].strip()
     return result, response.status_code
 
 
@@ -115,6 +124,68 @@ def printresult(openai_url:str, response_code:int, prompt:str, result:str):
     print("------------------------------------------------------------------------------------------")
     print("| OpenAI Output   |\n", result)
     print("==========================================================================================")
+
+
+_SCORE_WORDS = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+}
+
+
+def extract_score(content):
+    """Parse an explicitly labelled 1-5 score without guessing from other digits."""
+    text = str(content).strip()
+    fenced_json = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", text, re.DOTALL | re.IGNORECASE)
+    json_text = fenced_json.group(1) if fenced_json else text
+
+    try:
+        payload = json.loads(json_text)
+    except (TypeError, ValueError):
+        payload = None
+
+    if isinstance(payload, dict):
+        for key in ("score", "rating", "stars", "sentiment"):
+            if key in payload:
+                value = payload[key]
+                if isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 5:
+                    return value
+                if isinstance(value, str):
+                    text = f"{key}: {value}"
+                break
+
+    value_pattern = r"([1-5]|one|two|three|four|five)"
+    candidates = []
+    patterns = [
+        rf"^\s*{value_pattern}\s*(?:stars?|/5|out\s+of\s+5)?[.!]?\s*$",
+        rf"^\s*(?:the\s+)?(?:score|rating|stars?|sentiment)\s*(?:is|:|=|-)\s*"
+        rf"{value_pattern}\s*(?:stars?|/5|out\s+of\s+5)?"
+        rf"(?:[.!]|\s*[-,;:]\s+.*|\s+because\s+.*)?\s*$",
+    ]
+    for line in text.splitlines():
+        for pattern in patterns:
+            match = re.fullmatch(pattern, line, re.IGNORECASE)
+            if match:
+                token = match.group(1).lower()
+                candidates.append(int(token) if token.isdigit() else _SCORE_WORDS[token])
+
+    sentence = re.fullmatch(
+        rf"\s*I(?:\s+would|'d)?\s+(?:give(?:\s+it)?|rate(?:\s+it)?)\s+"
+        rf"{value_pattern}\s*(?:stars?|/5|out\s+of\s+5)?"
+        rf"(?:[.!]|\s+because\s+.*)?\s*",
+        text,
+        re.IGNORECASE,
+    )
+    if sentence:
+        token = sentence.group(1).lower()
+        candidates.append(int(token) if token.isdigit() else _SCORE_WORDS[token])
+
+    unique_scores = set(candidates)
+    if len(unique_scores) != 1:
+        raise ValueError(f"Expected one explicit score from 1 to 5, got: {content!r}")
+    return unique_scores.pop()
 
 # METADATA ********************
 
@@ -164,11 +235,14 @@ summary = result
 
 # CELL ********************
 
-prompt_agent = "Get me a sentiment value from the settence bellow, it should be an int number between 1 and 5: "
+prompt_agent = (
+    'Rate the sentiment of the sentence below from 1 to 5. '
+    'Return only JSON in the form {"score": 3}: '
+)
 prompt = prompt_agent + value_text_id_1000 
 result, status = get_model_response_until_empty(prompt=prompt, openai_url=openai_url)
 printresult(openai_url=openai_url, response_code=status, prompt=prompt, result=result)
-sentiment = result
+sentiment = extract_score(result)
 
 # METADATA ********************
 

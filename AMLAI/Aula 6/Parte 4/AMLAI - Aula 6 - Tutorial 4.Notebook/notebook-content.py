@@ -574,7 +574,7 @@ inputs = scaler.transform(inputs)
 
 X_test = []
 
-for i in range(timesteps, 412):
+for i in range(timesteps, len(inputs)):
     X_test.append(inputs[i-timesteps:i, 0])
 X_test = np.array(X_test)
 

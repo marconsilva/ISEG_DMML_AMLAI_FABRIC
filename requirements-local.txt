@@ -1,0 +1,42 @@
+# Optional local notebook-analysis environment.
+# Versions are intentionally not pinned: Microsoft Fabric remains the reference
+# runtime, and its built-in package versions vary with the selected runtime.
+# tensorflow-hub 0.16 still imports pkg_resources, removed in setuptools 81.
+setuptools<81
+# Bundled course exercise helpers imported by the notebooks.
+Envs/ENV-Aulas-Latest.Environment/Libraries/CustomLibraries/learntools-0.3.4-py2.py3-none-any.whl
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+scipy
+statsmodels
+xgboost
+lightgbm
+tensorflow
+tensorflow-hub
+mlflow
+spacy
+scikit-image
+mlxtend
+fuzzywuzzy
+python-Levenshtein
+category-encoders
+pmdarima
+imbalanced-learn
+graphviz
+ipython
+ipykernel
+ipywidgets
+jupyterlab
+requests
+charset-normalizer
+sympy
+openai>=1,<2
+azure-search-documents>=11.4,<12
+
+# Fabric/Spark integrations. SynapseML 1.1 targets Spark 3.5; keeping both
+# within that compatibility line avoids pip selecting an incompatible Spark 4.
+pyspark>=3.5,<3.6
+synapseml>=1.1,<1.2

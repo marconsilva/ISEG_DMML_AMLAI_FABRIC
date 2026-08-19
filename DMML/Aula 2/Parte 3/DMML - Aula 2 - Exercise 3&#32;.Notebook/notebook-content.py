@@ -118,9 +118,9 @@ step_1.check()
 
 # Lines below will give you a hint or solution code
 #_COMMENT_IF(PROD)_
-step_1.hint()
+#step_1.hint()
 #_COMMENT_IF(PROD)_
-step_1.solution()
+#step_1.solution()
 
 # METADATA ********************
 
@@ -175,9 +175,9 @@ step_2.check()
 # CELL ********************
 
 #%%RM_IF(PROD)%%
-high_score = 7.759930
-worst_genre = 'Simulation'
-step_2.assert_check_passed()
+# high_score = 7.759930
+# worst_genre = 'Simulation'
+# step_2.assert_check_passed()
 
 # METADATA ********************
 
@@ -190,9 +190,9 @@ step_2.assert_check_passed()
 
 # Lines below will give you a hint or solution code
 #_COMMENT_IF(PROD)_
-step_2.hint()
+#step_2.hint()
 #_COMMENT_IF(PROD)_
-step_2.solution()
+#step_2.solution()
 
 # METADATA ********************
 

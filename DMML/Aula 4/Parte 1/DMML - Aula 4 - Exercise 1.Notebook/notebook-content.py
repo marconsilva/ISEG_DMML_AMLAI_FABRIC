@@ -73,7 +73,7 @@ import seaborn as sns
 
 # CELL ********************
 
-ad_data = pd.read_csv('advertising.csv')
+ad_data = pd.read_csv("/lakehouse/default/Files/DMML_Aula4/advertising.csv")
 
 # METADATA ********************
 

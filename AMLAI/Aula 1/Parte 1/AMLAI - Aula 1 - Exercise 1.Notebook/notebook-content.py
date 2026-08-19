@@ -75,8 +75,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns 
 %matplotlib inline
 import warnings
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+    mlflow.autolog(disable=True)
+except ImportError:
+    mlflow = None
 
 warnings.filterwarnings('ignore')
 
@@ -100,7 +103,19 @@ print("Setup Complete")
 
 # CELL ********************
 
-data = '/lakehouse/default/Files/AMLAI_Aula1/pulsar_stars.csv'
+from pathlib import Path
+
+data_candidates = [
+    Path('/lakehouse/default/Files/AMLAI_Aula1/pulsar_stars.csv'),
+    Path.cwd() / 'Files' / 'AMLAI_Aula1' / 'pulsar_stars.csv',
+    Path.cwd() / 'pulsar_stars.csv',
+]
+data = next((path for path in data_candidates if path.exists()), data_candidates[0])
+if not data.exists():
+    raise FileNotFoundError(
+        "Upload pulsar_stars.csv to Files/AMLAI_Aula1 in the attached lakehouse "
+        "or place it in a local Files/AMLAI_Aula1 folder."
+    )
 
 df = pd.read_csv(data)
 
@@ -578,7 +593,7 @@ X_test = scaler.transform(X_test)
 
 # CELL ********************
 
-X_train = pd.DataFrame(X_train, columns=[cols])
+X_train = pd.DataFrame(X_train, columns=cols)
 
 # METADATA ********************
 
@@ -589,7 +604,7 @@ X_train = pd.DataFrame(X_train, columns=[cols])
 
 # CELL ********************
 
-X_test = pd.DataFrame(X_test, columns=[cols])
+X_test = pd.DataFrame(X_test, columns=cols)
 
 # METADATA ********************
 
@@ -946,7 +961,7 @@ y_test.value_counts()
 
 # check null accuracy score
 
-null_accuracy = (3306/(3306+274))
+null_accuracy = y_test.value_counts(normalize=True).max()
 
 print('Null accuracy score: {0:0.4f}'. format(null_accuracy))
 
@@ -1144,9 +1159,9 @@ cm = confusion_matrix(y_test, y_pred_test)
 
 print('Confusion matrix\n\n', cm)
 
-print('\nTrue Positives(TP) = ', cm[0,0])
+print('\nTrue Negatives(TN) = ', cm[0,0])
 
-print('\nTrue Negatives(TN) = ', cm[1,1])
+print('\nTrue Positives(TP) = ', cm[1,1])
 
 print('\nFalse Positives(FP) = ', cm[0,1])
 
@@ -1182,8 +1197,8 @@ print('\nFalse Negatives(FN) = ', cm[1,0])
 
 # visualize confusion matrix with seaborn heatmap
 
-cm_matrix = pd.DataFrame(data=cm, columns=['Actual Positive:1', 'Actual Negative:0'], 
-                                 index=['Predict Positive:1', 'Predict Negative:0'])
+cm_matrix = pd.DataFrame(data=cm, columns=['Predicted Negative:0', 'Predicted Positive:1'],
+                                 index=['Actual Negative:0', 'Actual Positive:1'])
 
 sns.heatmap(cm_matrix, annot=True, fmt='d', cmap='YlGnBu')
 
@@ -1222,8 +1237,8 @@ print(classification_report(y_test, y_pred_test))
 
 # CELL ********************
 
-TP = cm[0,0]
-TN = cm[1,1]
+TN = cm[0,0]
+TP = cm[1,1]
 FP = cm[0,1]
 FN = cm[1,0]
 
@@ -1337,18 +1352,21 @@ print('Recall or Sensitivity : {0:0.4f}'.format(recall))
 
 # CELL ********************
 
-from sklearn.model_selection import KFold
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.pipeline import Pipeline
 
-Cross_validated_ROC_AUC = cross_val_score(linear_svc, X_train, y_train, cv=10, scoring='roc_auc').mean()
+kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
 
-kfold=KFold(n_splits=5, shuffle=True, random_state=0)
+linear_svc = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='mean')),
+    ('scaler', StandardScaler()),
+    ('svc', SVC(kernel='linear')),
+])
 
-
-linear_svc=SVC(kernel='linear')
-
-
-linear_scores = cross_val_score(linear_svc, X_imputed, y, cv=kfold)
+Cross_validated_ROC_AUC = cross_val_score(
+    linear_svc, X, y, cv=kfold, scoring='roc_auc'
+).mean()
+linear_scores = cross_val_score(linear_svc, X, y, cv=kfold)
 
 
 # METADATA ********************
@@ -1390,10 +1408,13 @@ print('Average stratified cross-validation score with linear kernel:{:.4f}'.form
 
 # CELL ********************
 
-rbf_svc=SVC(kernel='rbf')
+rbf_svc = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='mean')),
+    ('scaler', StandardScaler()),
+    ('svc', SVC(kernel='rbf')),
+])
 
-
-rbf_scores = cross_val_score(rbf_svc, X_imputed, y, cv=kfold)
+rbf_scores = cross_val_score(rbf_svc, X, y, cv=kfold)
 
 # METADATA ********************
 
@@ -1509,16 +1530,17 @@ step_5.solution()
 # examine the best model
 
 
-# best score achieved during the GridSearchCV
-print('GridSearch CV best score : {:.4f}\n\n'.format(grid_search.best_score_))
+if hasattr(grid_search, 'best_score_'):
+    # best score achieved during the GridSearchCV
+    print('GridSearch CV best score : {:.4f}\n\n'.format(grid_search.best_score_))
 
+    # print parameters that give the best results
+    print('Parameters that give the best results :','\n\n', (grid_search.best_params_))
 
-# print parameters that give the best results
-print('Parameters that give the best results :','\n\n', (grid_search.best_params_))
-
-
-# print estimator that was chosen by the GridSearch
-print('\n\nEstimator that was chosen by the search :','\n\n', (grid_search.best_estimator_))
+    # print estimator that was chosen by the GridSearch
+    print('\n\nEstimator that was chosen by the search :','\n\n', (grid_search.best_estimator_))
+else:
+    print("Fit grid_search to display the best score, parameters, and estimator.")
 
 # METADATA ********************
 
@@ -1531,7 +1553,10 @@ print('\n\nEstimator that was chosen by the search :','\n\n', (grid_search.best_
 
 # calculate GridSearch CV score on test set
 
-print('GridSearch CV score on test set: {0:0.4f}'.format(grid_search.score(X_test, y_test)))
+if hasattr(grid_search, 'best_estimator_'):
+    print('GridSearch CV score on test set: {0:0.4f}'.format(grid_search.score(X_test, y_test)))
+else:
+    print("Fit grid_search before evaluating it on the test set.")
 
 # METADATA ********************
 

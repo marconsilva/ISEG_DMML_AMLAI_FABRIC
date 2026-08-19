@@ -53,11 +53,23 @@ print("Setup Complete")
 # CELL ********************
 
 import pandas as pd
+from pathlib import Path
 from sklearn.model_selection import train_test_split
 
 # Read the data
-X_full = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula1/home-data-for-ml-course/train.csv', index_col='Id')
-X_test_full = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula1/home-data-for-ml-course/test.csv', index_col='Id')
+data_roots = [
+    Path('/lakehouse/default/Files/AMLAI_Aula1/home-data-for-ml-course'),
+    Path.cwd() / 'Files' / 'AMLAI_Aula1' / 'home-data-for-ml-course',
+    Path.cwd() / 'home-data-for-ml-course',
+]
+data_root = next((path for path in data_roots if (path / 'train.csv').exists()), data_roots[0])
+if not (data_root / 'train.csv').exists() or not (data_root / 'test.csv').exists():
+    raise FileNotFoundError(
+        "Upload train.csv and test.csv to Files/AMLAI_Aula1/home-data-for-ml-course "
+        "or create the equivalent local folder."
+    )
+X_full = pd.read_csv(data_root / 'train.csv', index_col='Id')
+X_test_full = pd.read_csv(data_root / 'test.csv', index_col='Id')
 
 # Remove rows with missing target, separate target from predictors
 X_full.dropna(axis=0, subset=['SalePrice'], inplace=True)
@@ -115,8 +127,11 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+    mlflow.autolog(disable=True)
+except ImportError:
+    mlflow = None
 
 # Preprocessing for numerical data
 numerical_transformer = SimpleImputer(strategy='constant')

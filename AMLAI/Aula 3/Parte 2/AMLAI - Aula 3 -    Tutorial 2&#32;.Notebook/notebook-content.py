@@ -85,8 +85,7 @@
 
 # CELL ********************
 
-%pip install --upgrade pip
-%pip install tensorflow
+%pip install -q tensorflow
 
 # METADATA ********************
 
@@ -116,8 +115,9 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 model = keras.Sequential([
+    keras.Input(shape=[2]),
     # the hidden ReLU layers
-    layers.Dense(units=4, activation='relu', input_shape=[2]),
+    layers.Dense(units=4, activation='relu'),
     layers.Dense(units=3, activation='relu'),
     # the linear output layer 
     layers.Dense(units=1),

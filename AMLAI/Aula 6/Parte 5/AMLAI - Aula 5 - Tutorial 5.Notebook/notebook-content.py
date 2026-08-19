@@ -207,7 +207,8 @@ import keras.utils as ku
 
 # set seeds for reproducability
 from numpy.random import seed
-set_random_seed(2)
+from tensorflow.random import set_seed
+set_seed(2)
 seed(1)
 
 import pandas as pd

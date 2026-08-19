@@ -73,18 +73,24 @@
 
 # CELL ********************
 
-# Fill in the following lines with your Azure OpenAI service information
-aoai_endpoint = "https://.openai.azure.com" # TODO: Provide the URL endpoint for your created Azure OpenAI
-aoai_key = "" # TODO: Fill in your API key from Azure OpenAI 
-aoai_deployment_name_embeddings = "text-embedding-ada-002"
-aoai_model_name_query = "gpt-4-32k"  
-aoai_model_name_metrics = "gpt-4-32k"
-aoai_api_version = "2024-02-01"
+# Configure credentials in the Fabric environment rather than storing them in
+# notebook source.
+import os
+aoai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+aoai_key = os.getenv("AZURE_OPENAI_API_KEY", "")
+aoai_deployment_name_embeddings = os.getenv(
+    "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-ada-002"
+)
+aoai_model_name_query = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o")
+aoai_model_name_metrics = os.getenv(
+    "AZURE_OPENAI_METRICS_DEPLOYMENT", aoai_model_name_query
+)
+aoai_api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
 
 # Setup key accesses to Azure AI Search
-aisearch_index_name = "" # TODO: Create a new index name: must only contain lowercase, numbers, and dashes
-aisearch_api_key = "" # TODO: Fill in your API key from Azure AI Search
-aisearch_endpoint = "https://.search.windows.net" # TODO: Provide the url endpoint for your created Azure AI Search 
+aisearch_index_name = os.getenv("AZURE_SEARCH_INDEX_NAME", "")
+aisearch_api_key = os.getenv("AZURE_SEARCH_API_KEY", "")
+aisearch_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT", "")
 
 # METADATA ********************
 
@@ -102,7 +108,7 @@ aisearch_endpoint = "https://.search.windows.net" # TODO: Provide the url endpoi
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
-import os, requests, json, uuid
+import os, requests, json, uuid, re
 
 from datetime import datetime, timedelta
 from azure.core.credentials import AzureKeyCredential
@@ -137,6 +143,79 @@ from azure.search.documents.indexes.models import (
 
 import openai  
 import matplotlib.pyplot as plt 
+
+if not all([
+    aoai_endpoint,
+    aoai_key,
+    aisearch_index_name,
+    aisearch_api_key,
+    aisearch_endpoint,
+]):
+    raise ValueError(
+        "Set the AZURE_OPENAI_* and AZURE_SEARCH_* variables described above "
+        "in the Fabric environment."
+    )
+
+_SCORE_WORDS = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+}
+
+
+def extract_metric_score(content):
+    """Parse an explicitly labelled 1-5 score without guessing from other digits."""
+    text = str(content).strip()
+    fenced_json = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", text, re.DOTALL | re.IGNORECASE)
+    json_text = fenced_json.group(1) if fenced_json else text
+
+    try:
+        payload = json.loads(json_text)
+    except (TypeError, ValueError):
+        payload = None
+
+    if isinstance(payload, dict):
+        for key in ("score", "rating", "stars"):
+            if key in payload:
+                value = payload[key]
+                if isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 5:
+                    return value
+                if isinstance(value, str):
+                    text = f"{key}: {value}"
+                break
+
+    value_pattern = r"([1-5]|one|two|three|four|five)"
+    candidates = []
+    patterns = [
+        rf"^\s*{value_pattern}\s*(?:stars?|/5|out\s+of\s+5)?[.!]?\s*$",
+        rf"^\s*(?:the\s+)?(?:score|rating|stars?)\s*(?:is|:|=|-)\s*"
+        rf"{value_pattern}\s*(?:stars?|/5|out\s+of\s+5)?"
+        rf"(?:[.!]|\s*[-,;:]\s+.*|\s+because\s+.*)?\s*$",
+    ]
+    for line in text.splitlines():
+        for pattern in patterns:
+            match = re.fullmatch(pattern, line, re.IGNORECASE)
+            if match:
+                token = match.group(1).lower()
+                candidates.append(int(token) if token.isdigit() else _SCORE_WORDS[token])
+
+    sentence = re.fullmatch(
+        rf"\s*I(?:\s+would|'d)?\s+(?:give(?:\s+it)?|rate(?:\s+it)?)\s+"
+        rf"{value_pattern}\s*(?:stars?|/5|out\s+of\s+5)?"
+        rf"(?:[.!]|\s+because\s+.*)?\s*",
+        text,
+        re.IGNORECASE,
+    )
+    if sentence:
+        token = sentence.group(1).lower()
+        candidates.append(int(token) if token.isdigit() else _SCORE_WORDS[token])
+
+    unique_scores = set(candidates)
+    if len(unique_scores) != 1:
+        raise ValueError(f"Expected one explicit score from 1 to 5, got: {content!r}")
+    return unique_scores.pop()
 
 # METADATA ********************
 
@@ -478,6 +557,7 @@ def get_relevance_metric(context, question, answer):
     context: {context}
     question: {question}
     answer: {answer}
+    Return only JSON in the form {{"score": 4}}.
     stars:
     """
 
@@ -505,7 +585,7 @@ def get_relevance_metric(context, question, answer):
         temperature=0,
     )
 
-    return metric_completion.choices[0].message.content
+    return extract_metric_score(metric_completion.choices[0].message.content)
 
 
 # METADATA ********************
@@ -558,6 +638,7 @@ def get_similarity_metric(question, ground_truth, answer):
     question: {question}
     correct answer:{ground_truth}
     predicted answer: {answer}
+    Return only JSON in the form {{"score": 4}}.
     stars:
     """
     
@@ -584,7 +665,7 @@ def get_similarity_metric(question, ground_truth, answer):
         temperature=0,
     )
 
-    return metric_completion.choices[0].message.content
+    return extract_metric_score(metric_completion.choices[0].message.content)
 
 # METADATA ********************
 
@@ -640,21 +721,17 @@ def get_answer_udf(question, context):
 
 
 # UDF wrapper for retrieval score metric
-@udf(returnType=StringType())
+@udf(returnType=IntegerType())
 def get_retrieval_score_udf(target_source, retrieved_sources):
     return get_retrieval_score(target_source, retrieved_sources)
 
 
 # UDF wrappers AI-assisted metrics
-@udf(returnType=StringType())
-def get_groundedness_metric_udf(context, answer):
-    return get_groundedness_metric(context, answer)
-
-@udf(returnType=StringType())
+@udf(returnType=IntegerType())
 def get_relevance_metric_udf(context, question, answer): 
     return get_relevance_metric(context, question, answer)
 
-@udf(returnType=StringType())
+@udf(returnType=IntegerType())
 def get_similarity_metric_udf(question, ground_truth, answer):
     return get_similarity_metric(question, ground_truth, answer)
 

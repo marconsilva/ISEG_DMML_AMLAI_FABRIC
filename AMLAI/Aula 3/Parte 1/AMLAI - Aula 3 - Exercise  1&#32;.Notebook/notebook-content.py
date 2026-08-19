@@ -34,8 +34,7 @@
 
 # CELL ********************
 
-%pip install --upgrade pip
-%pip install tensorflow
+%pip install -q tensorflow
 
 # METADATA ********************
 
@@ -63,8 +62,11 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
 
 # Setup plotting
 import matplotlib.pyplot as plt
-import mlflow
-mlflow.autolog(disable=True)
+try:
+    import mlflow
+    mlflow.autolog(disable=True)
+except ImportError:
+    mlflow = None
 
 plt.style.use('seaborn-v0_8-whitegrid')
 # Set Matplotlib defaults
@@ -93,8 +95,20 @@ from learntools.deep_learning_intro.ex1 import *
 # CELL ********************
 
 import pandas as pd
+from pathlib import Path
 
-red_wine = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula3/red-wine.csv')
+data_candidates = [
+    Path('/lakehouse/default/Files/AMLAI_Aula3/red-wine.csv'),
+    Path.cwd() / 'Files' / 'AMLAI_Aula3' / 'red-wine.csv',
+    Path.cwd() / 'red-wine.csv',
+]
+data_path = next((path for path in data_candidates if path.exists()), data_candidates[0])
+if not data_path.exists():
+    raise FileNotFoundError(
+        "Upload red-wine.csv to Files/AMLAI_Aula3 in the attached lakehouse "
+        "or place it in a local Files/AMLAI_Aula3 folder."
+    )
+red_wine = pd.read_csv(data_path)
 red_wine.head()
 
 # METADATA ********************
@@ -246,7 +260,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 model = keras.Sequential([
-    layers.Dense(1, input_shape=[1]),
+    keras.Input(shape=[1]),
+    layers.Dense(1),
 ])
 
 x = tf.linspace(-1.0, 1.0, 100)

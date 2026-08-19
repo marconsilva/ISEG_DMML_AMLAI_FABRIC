@@ -51,6 +51,7 @@ import os
 # Disable GPU and suppress CUDA warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # METADATA ********************
 
@@ -100,16 +101,21 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import make_column_transformer, make_column_selector
 from sklearn.model_selection import train_test_split
 
-fuel = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula4/fuel.csv')
+fuel = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'fuel.csv'))
 
 X = fuel.copy()
 # Remove target
 y = X.pop('FE')
 
+try:
+    categorical_encoder = OneHotEncoder(sparse_output=False)
+except TypeError:  # scikit-learn < 1.2
+    categorical_encoder = OneHotEncoder(sparse=False)
+
 preprocessor = make_column_transformer(
     (StandardScaler(),
      make_column_selector(dtype_include=np.number)),
-    (OneHotEncoder(sparse=False),
+    (categorical_encoder,
      make_column_selector(dtype_include=object)),
 )
 

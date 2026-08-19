@@ -34,7 +34,7 @@
 
 # CELL ********************
 
-%pip install /lakehouse/default/Files/Env/learntools-0.3.4-py2.py3-none-any.whl
+%pip install /lakehouse/default/Files/Env/learntools-0.3.4-py2.py3-none-any.whl category-encoders
 
 # METADATA ********************
 
@@ -106,7 +106,7 @@ warnings.filterwarnings('ignore')
 
 # CELL ********************
 
-data = '/lakehouse/default/Files/AMLAI_Aula7/car_evaluation.csv'
+data = '/lakehouse/default/Files/DMML_Aula7/car_evaluation.csv'
 
 df = pd.read_csv(data, header=None)
 
@@ -599,20 +599,19 @@ tree.plot_tree(clf_en.fit(X_train, y_train))
 
 # MARKDOWN ********************
 
-# ### Visualize decision-trees with graphviz
+# ### Visualize the decision tree with feature and class labels
 
 # CELL ********************
 
-import graphviz 
-dot_data = tree.export_graphviz(clf_en, out_file=None, 
-                              feature_names=X_train.columns,  
-                              class_names=y_train,  
-                              filled=True, rounded=True,  
-                              special_characters=True)
-
-graph = graphviz.Source(dot_data) 
-
-graph 
+plt.figure(figsize=(16, 10))
+tree.plot_tree(
+    clf_en,
+    feature_names=X_train.columns,
+    class_names=[str(name) for name in clf_en.classes_],
+    filled=True,
+    rounded=True,
+)
+plt.show()
 
 # METADATA ********************
 

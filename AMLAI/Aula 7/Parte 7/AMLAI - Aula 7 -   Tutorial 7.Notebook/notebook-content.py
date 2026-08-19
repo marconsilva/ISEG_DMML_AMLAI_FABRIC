@@ -307,7 +307,7 @@ mean_forecast = cumsum(candy_diff) + candy.iloc[-1, 0]
 
 amazon = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula7/candy_production.csv',
                      index_col='observation_date',
-                     parse_dates=True)
+                     parse_dates=True).squeeze("columns")
 amazon.plot()
 plt.title('Amazon stock price change with time')
 plt.ylabel('Stock price')
@@ -608,4 +608,3 @@ plt.show()
 # Move to the exercise notebook where you will apply what you have learn. 
 # 
 # 
-
