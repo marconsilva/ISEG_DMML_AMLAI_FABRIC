@@ -18,7 +18,7 @@
 # META       ]
 # META     },
 # META     "environment": {
-# META       "environmentId": "2b9c63f7-1498-40e2-81b9-a8ccb1b5f193",
+# META       "environmentId": "8d4e4ec0-4003-41ac-8712-a74940892402",
 # META       "workspaceId": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
 # META     }
 # META   }
@@ -28,14 +28,16 @@
 
 # # Introduction #
 # 
-# In this exercise you'll train a neural network on the *Fuel Economy* dataset and then explore the effect of the learning rate and batch size on SGD.
+# In the tutorial, we saw how to build an image classifier by attaching a head of dense layers to a pretrained base. The base we used was from a model called **VGG16**. We saw that the VGG16 architecture was prone to overfitting this dataset. Over this course, you'll learn a number of ways you can improve upon this initial attempt.
 # 
-# When you're ready, run this next cell to set everything up!
+# The first way you'll see is to use a base more appropriate to the dataset. The base this model comes from is called **InceptionV1** (also known as GoogLeNet). InceptionV1 was one of the early winners of the ImageNet competition. One of its successors, InceptionV4, is among the state of the art today.
+#
+# To get started, run the code cell below to set everything up.
 
 # CELL ********************
 
 %pip install --upgrade pip
-%pip install tensorflow
+%pip install tensorflow tf-keras
 
 # METADATA ********************
 
@@ -51,6 +53,7 @@ import os
 # Disable GPU and suppress CUDA warnings
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
+os.environ['TF_USE_LEGACY_KERAS'] = '1'
 DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # METADATA ********************
@@ -62,86 +65,79 @@ DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
 
 # CELL ********************
 
-# Setup plotting
-import matplotlib.pyplot as plt
-from learntools.deep_learning_intro.dltools import animate_sgd
+# Setup feedback system
+from learntools.core import binder
+binder.bind(globals())
+from learntools.computer_vision.ex1 import *
+
+
 import mlflow
 mlflow.autolog(disable=True)
 
-plt.style.use('seaborn-v0_8-whitegrid')
+
+# Imports
+import os, warnings
+import matplotlib.pyplot as plt
+from matplotlib import gridspec
+
+import numpy as np
+import tensorflow as tf
+
+# Reproducability
+def set_seed(seed=31415):
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+set_seed()
+
 # Set Matplotlib defaults
 plt.rc('figure', autolayout=True)
 plt.rc('axes', labelweight='bold', labelsize='large',
        titleweight='bold', titlesize=18, titlepad=10)
-plt.rc('animation', html='html5')
+plt.rc('image', cmap='magma')
+warnings.filterwarnings("ignore") # to clean up output cells
 
-# Setup feedback system
-from learntools.core import binder
-binder.bind(globals())
-from learntools.deep_learning_intro.ex3 import *
 
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# In the *Fuel Economy* dataset your task is to predict the fuel economy of an automobile given features like its type of engine or the year it was made. 
-# 
-# First load the dataset by running the cell below.
-
-# CELL ********************
-
-import numpy as np
-import pandas as pd
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import make_column_transformer, make_column_selector
-from sklearn.model_selection import train_test_split
-
-fuel = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'fuel.csv'))
-
-X = fuel.copy()
-# Remove target
-y = X.pop('FE')
-
-try:
-    categorical_encoder = OneHotEncoder(sparse_output=False)
-except TypeError:  # scikit-learn < 1.2
-    categorical_encoder = OneHotEncoder(sparse=False)
-
-preprocessor = make_column_transformer(
-    (StandardScaler(),
-     make_column_selector(dtype_include=np.number)),
-    (categorical_encoder,
-     make_column_selector(dtype_include=object)),
+# Load training and validation sets
+ds_train_ = tf.keras.utils.image_dataset_from_directory(
+    os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'car-or-truck', 'train'),
+    labels='inferred',
+    label_mode='binary',
+    image_size=[128, 128],
+    interpolation='nearest',
+    batch_size=64,
+    shuffle=True,
+)
+ds_valid_ = tf.keras.utils.image_dataset_from_directory(
+    os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'car-or-truck', 'valid'),
+    labels='inferred',
+    label_mode='binary',
+    image_size=[128, 128],
+    interpolation='nearest',
+    batch_size=64,
+    shuffle=False,
 )
 
-X = preprocessor.fit_transform(X)
-y = np.log(y) # log transform target instead of standardizing
+# Data Pipeline
+def convert_to_float(image, label):
+    image = tf.image.convert_image_dtype(image, dtype=tf.float32)
+    return image, label
 
-input_shape = [X.shape[1]]
-print("Input shape: {}".format(input_shape))
+AUTOTUNE = tf.data.AUTOTUNE
+ds_train = (
+    ds_train_
+    .map(convert_to_float)
+    .cache()
+    .prefetch(buffer_size=AUTOTUNE)
+)
+ds_valid = (
+    ds_valid_
+    .map(convert_to_float)
+    .cache()
+    .prefetch(buffer_size=AUTOTUNE)
+)
 
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# Take a look at the data if you like. Our target in this case is the `'FE'` column and the remaining columns are the features.
-
-# CELL ********************
-
-# Uncomment to see original data
-fuel.head()
-# Uncomment to see processed features
-pd.DataFrame(X[:10,:]).head()
 
 # METADATA ********************
 
@@ -152,19 +148,14 @@ pd.DataFrame(X[:10,:]).head()
 
 # MARKDOWN ********************
 
-# Run the next cell to define the network we'll use for this task.
+# The **InceptionV1** model pretrained on ImageNet is available in the [TensorFlow Hub](https://www.tensorflow.org/hub/) repository, but we'll load it from a local copy. Run this cell to load InceptionV1 for your base.
 
 # CELL ********************
 
-from tensorflow import keras
-from tensorflow.keras import layers
-
-model = keras.Sequential([
-    layers.Dense(128, activation='relu', input_shape=input_shape),
-    layers.Dense(128, activation='relu'),    
-    layers.Dense(64, activation='relu'),
-    layers.Dense(1),
-])
+pretrained_base = tf.keras.models.load_model(
+    os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'cv-course-models',
+                 'cv-course-models', 'inceptionv1')
+)
 
 # METADATA ********************
 
@@ -175,14 +166,14 @@ model = keras.Sequential([
 
 # MARKDOWN ********************
 
-# # 1) Add Loss and Optimizer
-# 
-# Before training the network we need to define the loss and optimizer we'll use. Using the model's `compile` method, add the Adam optimizer and MAE loss.
+# # 1) Define Pretrained Base #
+#
+# Now that you have a pretrained base to do our feature extraction, decide whether this base should be trainable or not.
 
 # CELL ********************
 
-# YOUR CODE HERE
-____
+# YOUR_CODE_HERE
+pretrained_base.trainable = ____
 
 # Check your answer
 q_1.check()
@@ -209,14 +200,26 @@ q_1.solution()
 
 # MARKDOWN ********************
 
-# # 2) Train Model
+# # 2) Attach Head #
 # 
-# Once you've defined the model and compiled it with a loss and optimizer you're ready for training. Train the network for 200 epochs with a batch size of 128. The input data is `X` with target `y`.
+# Now that the base is defined to do the feature extraction, create a head of `Dense` layers to perform the classification, following this diagram:
+#
+# <figure>
+# <img src="https://storage.googleapis.com/kaggle-media/learn/images/i5VU7Ry.png" alt="Diagram of the dense head.">
+# </figure>
+
 
 # CELL ********************
 
-# YOUR CODE HERE
-history = ____
+from tensorflow import keras
+from tensorflow.keras import layers
+
+model = keras.Sequential([
+    pretrained_base,
+    layers.Flatten(),
+    # YOUR CODE HERE. Attach a head of dense layers.
+    # ____
+])
 
 # Check your answer
 q_2.check()
@@ -243,32 +246,25 @@ q_2.solution()
 
 # MARKDOWN ********************
 
-# The last step is to look at the loss curves and evaluate the training. Run the cell below to get a plot of the training loss.
-
-# CELL ********************
-
-import pandas as pd
-
-history_df = pd.DataFrame(history.history)
-# Start the plot at epoch 5. You can change this to get a different view.
-history_df.loc[5:, ['loss']].plot();
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# # 3) Evaluate Training
+# # 3) Train #
 # 
-# If you trained the model longer, would you expect the loss to decrease further?
+# Before training a model in Keras, you need to specify an *optimizer* to perform the gradient descent, a *loss function* to be minimized, and (optionally) any *performance metrics*. The optimization algorithm we'll use for this course is called ["Adam"](https://keras.io/api/optimizers/adam/), which generally performs well regardless of what kind of problem you're trying to solve.
+#
+# The loss and the metrics, however, need to match the kind of problem you're trying to solve. Our problem is a **binary classification** problem: `Car` coded as 0, and `Truck` coded as 1. Choose an appropriate loss and an appropriate accuracy metric for binary classification.
 
 # CELL ********************
 
-# View the solution (Run this cell to receive credit!)
+# YOUR CODE HERE: what loss function should you use for a binary
+# classification problem? (Your answer for each should be a string.)
+optimizer = tf.keras.optimizers.Adam(epsilon=0.01)
+model.compile(
+    optimizer=optimizer,
+    loss = ____,
+    metrics=[____],
+)
+
+
+# Check your answer
 q_3.check()
 
 # METADATA ********************
@@ -278,44 +274,25 @@ q_3.check()
 # META   "language_group": "synapse_pyspark"
 # META }
 
-# MARKDOWN ********************
+# CELL ********************
 
-# With the learning rate and the batch size, you have some control over:
-# - How long it takes to train a model
-# - How noisy the learning curves are
-# - How small the loss becomes
-# 
-# To get a better understanding of these two parameters, we'll look at the linear model, our ppsimplest neural network. Having only a single weight and a bias, it's easier to see what effect a change of parameter has.
-# 
-# The next cell will generate an animation like the one in the tutorial. Change the values for `learning_rate`, `batch_size`, and `num_examples` (how many data points) and then run the cell. (It may take a moment or two.) Try the following combinations, or try some of your own:
-# 
-# | `learning_rate` | `batch_size` | `num_examples` |
-# |-----------------|--------------|----------------|
-# | 0.05            | 32           | 256            |
-# | 0.05            | 2            | 256            |
-# | 0.05            | 128          | 256            |
-# | 0.02            | 32           | 256            |
-# | 0.2             | 32           | 256            |
-# | 1.0             | 32           | 256            |
-# | 0.9             | 4096         | 8192           |
-# | 0.99            | 4096         | 8192           |
+# Lines below will give you a hint or solution code
+q_3.hint()
+q_3.solution()
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # CELL ********************
 
-# YOUR CODE HERE: Experiment with different values for the learning rate, batch size, and number of examples
-learning_rate = 0.05
-batch_size = 32
-num_examples = 256
-
-animate_sgd(
-    learning_rate=learning_rate,
-    batch_size=batch_size,
-    num_examples=num_examples,
-    # You can also change these, if you like
-    steps=50, # total training steps (batches seen)
-    true_w=3.0, # the slope of the data
-    true_b=2.0, # the bias of the data
+history = model.fit(
+    ds_train,
+    validation_data=ds_valid,
+    epochs=30,
 )
 
 # METADATA ********************
@@ -327,13 +304,33 @@ animate_sgd(
 
 # MARKDOWN ********************
 
-# # 4) Learning Rate and Batch Size
-# 
-# What effect did changing these parameters have? After you've thought about it, run the cell below for some discussion.
+# Run the cell below to plot the loss and metric curves for this training run.
 
 # CELL ********************
 
-# View the solution (Run this cell to receive credit!)
+import pandas as pd
+history_frame = pd.DataFrame(history.history)
+history_frame.loc[:, ['loss', 'val_loss']].plot()
+history_frame.loc[:, ['binary_accuracy', 'val_binary_accuracy']].plot();
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# # 4) Examine Loss and Accuracy #
+# 
+# Do you notice a difference between these learning curves and the curves for VGG16 from the tutorial? What does this difference tell you about what this model (InceptionV2) learned compared to VGG16? Are there ways in which one is better than the other? Worse?
+# 
+# After you've thought about it, run the cell below to see the answer.
+
+# CELL ********************
+
+# View the solution (Run this code cell to receive credit!)
 q_4.check()
 
 # METADATA ********************
@@ -345,6 +342,12 @@ q_4.check()
 
 # MARKDOWN ********************
 
+# # Conclusion #
+# 
+# In this first lesson, you learned the basics of **convolutional image classifiers**, that they consist of a **base** for extracting features from images, and a **head** which uses the features to decide the image's class. You also saw how to build a classifier with **transfer learning** on pretrained base.
+
+# MARKDOWN ********************
+
 # # Keep Going #
 # 
-# Learn how to [**improve your model's performance**] by tuning capacity or adding an early stopping callback.
+# Move on to [**Lesson 2**] for a detailed look at how the base does this feature extraction. (It's really cool!)

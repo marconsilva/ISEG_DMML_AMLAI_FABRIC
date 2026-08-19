@@ -4,8 +4,7 @@
 
 # META {
 # META   "kernel_info": {
-# META     "name": "jupyter",
-# META     "jupyter_kernel_name": "python3.11"
+# META     "name": "synapse_pyspark"
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
@@ -17,28 +16,40 @@
 # META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
 # META         }
 # META       ]
-# META     },
-# META     "environment": {
-# META       "environmentId": "85eb7531-0beb-4054-9c4a-d10a6e21679e",
-# META       "workspaceId": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
 # META     }
 # META   }
 # META }
 
 # MARKDOWN ********************
 
-# # Introduction
+# # Introduction to Linear Regression Metrics
 # 
-# In the exercise, you will work with data from the TalkingData AdTracking.  The goal is to predict if a user will download an app after clicking through an ad. 
+# Congratulations! You just got some contract work with an Ecommerce company based in New York City that sells clothing online but they also have in-store style and clothing advice sessions. Customers come in to the store, have sessions/meetings with a personal stylist, then they can go home and order either on a mobile app or website for the clothes they want.
 # 
+# The company is trying to decide whether to focus their efforts on their mobile app experience or their website. They've hired you on contract to help them figure it out! Let's get started!
 # 
-# For this course you will use a small sample of the data, dropping 99% of negative records (where the app wasn't downloaded) to make the target more balanced.
-# 
-# After building a baseline model, you'll be able to see how your feature engineering and selection efforts improve the model's performance.
-# 
-# ## Setup
-# 
-# Begin by running the code cell below to set up the exercise.
+# Just follow the steps below to analyze the customer data (it's fake, don't worry I didn't give you real credit card numbers or emails).
+
+# MARKDOWN ********************
+
+# ## Imports
+# ** Import pandas, numpy, matplotlib,and seaborn. Then set %matplotlib inline
+# (You'll import sklearn as you need it.)**
+
+# CELL ********************
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # CELL ********************
 
@@ -48,163 +59,492 @@
 
 # META {
 # META   "language": "python",
-# META   "language_group": "jupyter_python"
+# META   "language_group": "synapse_pyspark"
 # META }
 
 # CELL ********************
 
 # Set up code checking
+# Setup feedback system
 from learntools.core import binder
 binder.bind(globals())
-from learntools.feature_engineering.ex1 import *
+from learntools.linear_reg.ex2 import *
+print("Setup Complete")
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "jupyter_python"
+# META   "language_group": "synapse_pyspark"
 # META }
 
 # MARKDOWN ********************
 
-# ## Baseline Model
+# ## Get the Data
+#
+# We'll work with the Ecommerce Customers csv file from the company. It has Customer info, suchas Email, Address, and their color Avatar. Then it also has numerical value columns:
 # 
-# The first thing you'll do is construct a baseline model. We'll begin by looking at the data.
+# * Avg. Session Length: Average session of in-store style advice sessions.
+# * Time on App: Average time spent on App in minutes
+# * Time on Website: Average time spent on Website in minutes
+# * Length of Membership: How many years the customer has been a member.
+#
+# ** Read in the Ecommerce Customers csv file as a DataFrame called customers.**
 
 # CELL ********************
 
-import pandas as pd
-
-click_data = pd.read_csv('/lakehouse/default/Files/DMML_Aula4/feature-engineering-data/train_sample.csv',
-                         parse_dates=['click_time'])
-click_data.head()
+customers = pd.read_csv(
+    "/lakehouse/default/Files/DMML_Aula4/Ecommerce Customers.txt"
+)
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "jupyter_python"
+# META   "language_group": "synapse_pyspark"
 # META }
 
 # MARKDOWN ********************
 
-# ### 1) Construct features from timestamps
-# 
-# Notice that the `click_data` DataFrame has a `'click_time'` column with timestamp data.
-# 
-# Use this column to create features for the coresponding day, hour, minute and second. 
-# 
-# Store these as new integer columns `day`, `hour`, `minute`, and `second` in a new DataFrame `clicks`.
+# **Check the head of customers, and check out its info() and describe() methods.**
 
 # CELL ********************
 
-# Add new columns for timestamp features day, hour, minute, and second
-clicks = click_data.copy()
-clicks['day'] = clicks['click_time'].dt.day.astype('uint8')
-# Fill in the rest
-clicks['hour'] = ____
-clicks['minute'] = ____
-clicks['second'] = ____
-
-# Check your answer
-q_1.check()
+customers.head()
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "jupyter_python"
+# META   "language_group": "synapse_pyspark"
 # META }
 
 # CELL ********************
 
-# Uncomment these if you need guidance
-q_1.hint()
-q_1.solution()
+customers.describe()
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "jupyter_python"
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+customers.info()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
 # META }
 
 # MARKDOWN ********************
 
-# ### 2) Label Encoding
-# For each of the categorical features `['ip', 'app', 'device', 'os', 'channel']`, use scikit-learn's `LabelEncoder` to create new features in the `clicks` DataFrame. The new column names should be the original column name with `'_labels'` appended, like `ip_labels`.
+# ## Exploratory Data Analysis
+# 
+# **Let's explore the data!**
+# 
+# For the rest of the exercise we'll only be using the numerical data of the csv file.
+# ___
+# **Use seaborn to create a jointplot to compare the Time on Website and Yearly Amount Spent columns. Does the correlation make sense?**
 
 # CELL ********************
 
-from sklearn import preprocessing
-
-cat_features = ['ip', 'app', 'device', 'os', 'channel']
-
-# Create new columns in clicks using preprocessing.LabelEncoder()
-for feature in cat_features:
-    ____
-
-# Check your answer
-q_2.check()
+sns.set_palette("GnBu_d")
+sns.set_style('whitegrid')
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "jupyter_python"
+# META   "language_group": "synapse_pyspark"
 # META }
 
 # CELL ********************
 
-# Uncomment these if you need guidance
-# q_2.hint()
-# q_2.solution()
+# More time on site, more money spent.
+sns.jointplot(x='Time on Website',y='Yearly Amount Spent',data=customers)
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "jupyter_python"
+# META   "language_group": "synapse_pyspark"
 # META }
 
 # MARKDOWN ********************
 
-# Run the next code cell to view your new DataFrame.
+# We Do the same but with the Time on App column instead.
 
 # CELL ********************
 
-clicks.head()
+sns.jointplot(x='Time on App',y='Yearly Amount Spent',data=customers)
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "jupyter_python"
+# META   "language_group": "synapse_pyspark"
 # META }
 
 # MARKDOWN ********************
 
-# ### 3) One-hot Encoding
-# 
-# In the code cell above, you used label encoded features.  Would it have also made sense to instead use one-hot encoding for the categorical variables `'ip'`, `'app'`, `'device'`, `'os'`, or `'channel'`?
-# 
-# **Note**: If you're not familiar with one-hot encoding, please check out aula 4.
-# 
-# Run the following line after you've decided your answer.
+# We Use jointplot to create a 2D hex bin plot comparing Time on App and Length of Membership.
 
 # CELL ********************
 
-# Check your answer (Run this code cell )
-q_3.solution()
+sns.jointplot(x='Time on App',y='Length of Membership',kind='hex',data=customers)
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "jupyter_python"
+# META   "language_group": "synapse_pyspark"
 # META }
 
 # MARKDOWN ********************
 
-# # Keep Going
-# Now that you have a baseline idea keep going !
+# Let's explore these types of relationships across the entire data set.
+
+# CELL ********************
+
+sns.pairplot(customers)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Step 1: Analyze the Data
+# 
+# Based off this plot what looks to be the most correlated feature with Yearly Amount Spent?
+
+# CELL ********************
+
+#run the line bellow to see the solution
+step_1.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# We Create a linear model plot (using seaborn's lmplot) of  Yearly Amount Spent vs. Length of Membership.
+
+# CELL ********************
+
+sns.lmplot(x='Length of Membership',y='Yearly Amount Spent',data=customers)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Training and Testing Data
+#
+# Now that we've explored the data a bit, let's go ahead and split the data into training and testing sets.
+# ** Set a variable X equal to the numerical features of the customers and a variable y equal to the "Yearly Amount Spent" column. **
+
+# CELL ********************
+
+y = customers['Yearly Amount Spent']
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+X = customers[['Avg. Session Length', 'Time on App','Time on Website', 'Length of Membership']]
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ** Use model_selection.train_test_split from sklearn to split the data into training and testing sets. Set test_size=0.3 and random_state=101**
+
+# CELL ********************
+
+from sklearn.model_selection import train_test_split
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Step 1: Training the Model
+#
+# Now its time to train our model on our training data!
+#
+# Create an instance of a LinearRegression() model named model and fit the training data
+
+
+# CELL ********************
+
+from sklearn.linear_model import LinearRegression
+
+model = LinearRegression()
+model.fit(X_train,y_train)
+
+step_2.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+from sklearn.linear_model import LinearRegression
+
+model = ____
+
+step_2.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Lines below will give you a hint or solution code
+step_2.hint()
+step_2.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# Let's print out the coefficients of the model
+
+# CELL ********************
+
+# The coefficients
+print('Coefficients: \n', model.coef_)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Predicting Test Data
+# Now that we have fit our model, let's evaluate its performance by predicting off the test values!
+#
+# We are going to use model.predict() to predict off the X_test set of the data.
+
+# CELL ********************
+
+predictions = model.predict( X_test)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# We Create a scatterplot of the real test values versus the predicted values.
+
+# CELL ********************
+
+plt.scatter(y_test,predictions)
+plt.xlabel('Y Test')
+plt.ylabel('Predicted Y')
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Step 2: Evaluating the Model
+#
+# Let's evaluate our model performance by calculating the residual sum of squares and the explained variance score (R^2).
+#
+# ** Calculate the Mean Absolute Error, Mean Squared Error, and the Root Mean Squared Error.**
+
+# CELL ********************
+
+# calculate these metrics by hand!
+from sklearn import metrics
+
+mae = metrics.mean_absolute_error(y_test, predictions)
+mse = metrics.mean_squared_error(y_test, predictions)
+rmse= np.sqrt(metrics.mean_squared_error(y_test, predictions))
+
+step_3.check()
+
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+mae = ____
+mse = ____
+rmse= ____
+
+step_3.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Lines below will give you a hint or solution code
+step_3.hint()
+step_3.solution()
+
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Residuals
+#
+# You should have gotten a very good model with a good fit. Let's quickly explore the residuals to make sure everything was okay with our data.
+#
+# Here we Plot a histogram of the residuals and make sure it looks normally distributed. Use either seaborn distplot, or just plt.hist().
+
+# CELL ********************
+
+sns.histplot(y_test - predictions, bins=50, kde=True)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Conclusion
+# We still want to figure out the answer to the original question, do we focus our efforst on mobile app or website development? Or maybe that doesn't even really matter, and Membership Time is what is really important.  Let's see if we can interpret the coefficients at all to get an idea.
+# 
+
+
+# CELL ********************
+
+coeffecients = pd.DataFrame(model.coef_,X.columns)
+coeffecients.columns = ['Coeffecient']
+coeffecients
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Step 4: Interprete coeficients
+# 
+# How can you interpret these coefficients? **
+
+# CELL ********************
+
+#run the line bellow to see the solution
+step_4.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Step 5: Insight analyze
+# 
+# Do you think the company should focus more on their mobile app or on their website?**
+
+# CELL ********************
+
+#run the line bellow to see the solution
+step_5.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Great Job!
+#
+# Congrats on your contract work! The company loved the insights! Let's move on.

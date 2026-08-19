@@ -6,62 +6,125 @@
 # META   "kernel_info": {
 # META     "name": "jupyter",
 # META     "jupyter_kernel_name": "python3.11"
-# META   },
-# META   "dependencies": {
-# META     "lakehouse": {
-# META       "default_lakehouse": "81cbac54-cfa3-495b-ad48-b44a92bb72fb",
-# META       "default_lakehouse_name": "DataScienceLearnLakehouse",
-# META       "default_lakehouse_workspace_id": "a677a3bf-5fb2-455e-abaa-9e850bde3e1a",
-# META       "known_lakehouses": [
-# META         {
-# META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
-# META         }
-# META       ]
-# META     }
 # META   }
 # META }
 
 # MARKDOWN ********************
 
-# # Basics of Feature Selection with Python
-# In machine learning, feature selection is the process of choosing a subset of input features that contribute the most to the output feature for use in model construction. Feature selection is substantially important if we have datasets with high dimensionality (i.e., large number of features). High-dimensional datasets are not preferred because they have lengthy training time and have high risk of overfitting. Feature selection helps to mitigate these problems by selecting features that have high importance to the model, such that the data dimensionality can be reduced without much loss of the total information. Some benefits of feature selection are:
-# - Reduce training time
-# - Reduce the risk of overfitting
-# - Potentially increase model's performance 
-# - Reduce model's complexity such that interpretation becomes easier
+# # Introduction
 # 
-# The objective of this tutorial is to introduce the fundamental of feature selection in Python.
+# ![Decision_Tree_Header](https://raw.githubusercontent.com/satishgunjal/images/master/Decision_Tree_Header.png)
 # 
-# We will discuss three key methods to perform feature selection together with their implementation in Python:
-# 1. [Filter methods](#section 1.0.)
-# 2. [Wrapper methods](#section 2.0.)
-# 3. [Embedded methods](#section 3.0.)
+# Decision tree algorithm belongs to the family of supervised learning algorithms. Unlike other supervised learning algorithms decision tree can be used to solve regression and classification problems. The goal of decision tree is to create training model that can predict class(single or multi) or value by learning simple decision rules from training data.
+# Decision tree form a flow chart like structure that's why they are very easy to interpret and understand. It is one of the few ML algorithm where its very easy to visualize and analyze the internal working of algorithm.
 # 
-# Before we get started, let's import the necessary Python libraries.
+# Just like flowchart, decision tree contains different types of nodes and branches. Every decision node represent the test on feature and based on the test result it will either form another branch or the leaf node. Every branch represents the decision rule and leaf node represent the final outcome.
+# 
+# ![decision tree](https://raw.githubusercontent.com/satishgunjal/images/master/Decision_Tree.png)
+#
+# Types of decision tree
+# * Classification decision trees − In this kind of decision trees, the decision variable is categorical.
+# * Regression decision trees − In this kind of decision trees, the decision variable is continuous
 
+
+# MARKDOWN ********************
+
+# # Inner Workings Of Decision Tree
+# * At the root node decision tree selects feature to split the data in two major categories.
+# * So at the end of root node we have two decision rules and two sub trees
+# * Data will again be divided in two categories in each sub tree
+# * This process will continue until every training example is grouped together.
+# * So at the end of decision tree we end up with leaf node. Which represent the class or a continuous value that we are trying predict
+# 
+# ## Criteria To Split The Data
+# The objective of decision tree is to split the data in such a way that at the end we have different groups of data which has more similarity and less randomness/impurity. In order to achieve this, every split in decision tree must reduce the randomness.
+# Decision tree uses 'entropy' or 'gini' selection criteria to split the data.
+# Note: We are going to use sklearn library to test classification and regression. 'entropy' or 'gini' are selection criteria for classifier whereas “mse”, “friedman_mse” and “mae” are selection criteria for regressor.
+# 
+# ### Entropy
+# In order to find the best feature which will reduce the randomness after a split, we can compare the randomness before and after the split for every feature. In the end we choose the feature which will provide the highest reduction in randomness. Formally randomness in data is known as 'Entropy' and difference between the 'Entropy' before and after split is known as 'Information Gain'. Since in case of decision tree we may have multiple branches, information gain formula can be written as,
+# 
+# ```
+#     Information Gain= Entropy(Parent Decision Node)–(Average Entropy(Child Nodes))
+# ```
+# 
+# 'i' in below Entropy formula represent the target classes
+# 
+#    ![entropy_formula](https://raw.githubusercontent.com/satishgunjal/images/master/entropy_formula.png)
+# 
+# So in case of 'Entropy', decision tree will split the data using the feature that provides the highest information gain.
+# 
+# ### Gini
+#
+# We have not look to Gini in the classes but it is also an option, here is how Gini works.
+# In case of gini impurity, we pick a random data point in our dataset. Then randomly classify it according to the class distribution in the dataset. So it becomes very important to know the accuracy of this random classification. Gini impurity gives us the probability of incorrect classification. We’ll determine the quality of the split by weighting the impurity of each branch by how many elements it has. Resulting value is called as 'Gini Gain' or 'Gini Index'. This is what’s used to pick the best split in a decision tree. Higher the Gini Gain, better the split
+#
+# 'i' in below Gini formula represent the target classes
+#
+#    ![gini_formula](https://raw.githubusercontent.com/satishgunjal/images/master/gini_formula.png)
+#
+# So in case of 'gini', decision tree will split the data using the feature that provides the highest gini gain.
+# 
+
+
+# MARKDOWN ********************
+
+# # Advantages Of Decision Tree
+# * Simple to understand and to interpret. Trees can be visualized.
+# * Requires little data preparation. Other techniques often require data normalization, dummy variables need to be created and blank values to be removed. Note however that this module does not support missing values.
+# * Able to handle both numerical and categorical data.
+# * Able to handle multi-output problems.
+# * Uses a white box model. Results are easy to interpret.
+# * Possible to validate a model using statistical tests. That makes it possible to account for the reliability of the model.
+
+# MARKDOWN ********************
+
+# # Disadvantages Of Decision Tree
+# * Decision-tree learners can create over-complex trees that do not generalize the data well. This is called overfitting. Mechanisms such as pruning, setting the minimum number of samples required at a leaf node or setting the maximum depth of the tree are necessary to avoid this problem.
+# * Decision trees can be unstable because small variations in the data might result in a completely different tree being generated. This problem is mitigated by using decision trees within an ensemble.
+# * Decision tree learners create biased trees if some classes dominate. It is therefore recommended to balance the dataset prior to fitting with the decision tree.
+
+# MARKDOWN ********************
+
+# # Classification Problem Example
+# For classification exercise we are going to use sklearns iris plant dataset.
+# Objective is to classify iris flowers among three species (setosa, versicolor or virginica) from measurements of length and width of sepals and petals
+# 
+# ## Understanding the IRIS dataset
+# * iris.DESCR > Complete description of dataset
+# * iris.data > Data to learn. Each training set is 4 digit array of features. Total 150 training sets
+# * iris.feature_names > Array of all 4 feature ['sepal length (cm)','sepal width cm)','petal length (cm)','petal width (cm)']
+# * iris.filename > CSV file name
+# * iris.target > The classification label. For every training set there is one classification label(0,1,2). Here 0 for setosa, 1 for versicolor and 2 for virginica
+# * iris.target_names > the meaning of the features. It's an array >> ['setosa', 'versicolor', 'virginica']
+# 
+# From above details its clear that X = 'iris.data' and y= 'iris.target'
+# 
+# ![Iris_setosa](https://raw.githubusercontent.com/satishgunjal/images/master/iris_species.png)
+# 
+
+
+# MARKDOWN ********************
+
+# ## Import Libraries
+# * pandas: Used for data manipulation and analysis
+# * numpy : Numpy is the core library for scientific computing in Python. It is used for working with arrays and matrices.
+# * datasets: Here we are going to use ‘iris’ and 'boston house prices' dataset
+# * model_selection: Here we are going to use model_selection.train_test_split() for splitting the data
+# * tree: Here we are going to decision tree classifier and regressor
+# * matplotlib: Used to visualize the fitted decision trees inline
 
 # CELL ********************
 
-%pip install mlxtend
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# CELL ********************
-
-import numpy as np
 import pandas as pd
-
+import numpy as np
+from sklearn import datasets
+from sklearn import model_selection
+from sklearn import tree
 import matplotlib.pyplot as plt
-import seaborn as sns
-sns.set(style="whitegrid")
+import mlflow
+mlflow.autolog(disable=True)
 
-import warnings
-warnings.filterwarnings('ignore')
 
 # METADATA ********************
 
@@ -72,20 +135,20 @@ warnings.filterwarnings('ignore')
 
 # MARKDOWN ********************
 
-# We will do some demonstrations on how to implement each feature selection method in Python. To do that, we use Iris flower dataset. We import the Iris flower dataset from Scikit-learn by calling the following:
+# ## Load The Data
 
 # CELL ********************
 
-# Load Iris dataset from Scikit-learn
-from sklearn.datasets import load_iris
+iris = datasets.load_iris()
+print('Dataset structure= ', dir(iris))
 
-# Create input and output features
-feature_names = load_iris().feature_names
-X_data = pd.DataFrame(load_iris().data, columns=feature_names)
-y_data = load_iris().target
+df = pd.DataFrame(iris.data, columns = iris.feature_names)
+df['target'] = iris.target
+df['flower_species'] = df.target.apply(lambda x : iris.target_names[x]) # Each value from 'target' is used as index to get corresponding value from 'target_names'
 
-# Show the first five rows of the dataset
-X_data.head()
+print('Unique target values=',df['target'].unique())
+
+df.sample(5)
 
 # METADATA ********************
 
@@ -96,39 +159,38 @@ X_data.head()
 
 # MARKDOWN ********************
 
-# <a id='section 1.0.'></a>
-
-# MARKDOWN ********************
-
-# # 1.0. Filter Methods
-# In filter methods, features are selected independently from any machine algorithms. Filter methods generally use a specific criteria, such as scores in statistical test and variances, to rank the importance of individual features. Filter methods have some advantages:
-# - Because of their independency to the selection of machine learning algorithms, they can be used as the input of any machine learning models. 
-# - They are generally effective in computation time.
-# 
-# The main weakness of filter methods is that they do not consider the relationships among features. That's why they are mainly used as the pre-processing step of any feature selection pipeline. We will discuss three types of filter selection methods:
-# 1. [ANOVA F-value](#section 1.1.)
-# 2. [Variance Threshold](#section 1.2.)
-# 3. [Mutual Information](#section 1.3.)
-
-# MARKDOWN ********************
-
-# <a id='section 1.1.'></a>
-
-# MARKDOWN ********************
-
-# ## 1.1. ANOVA F-value
-# ANOVA F-value method estimates the degree of linearity between the input feature (i.e., predictor) and the output feature. A high F-value indicates high degree of linearity and a low F-value indicates low degree of linearity. The main disadvantage of using ANOVA F-value is it only captures linear relationships between input and output feature. In other words, any non-linear relationships cannot be detected by F-value. 
-# 
-# We can use Scikit-learn to calculate ANOVA F-value. First, we need to load the library. Scikit-learn has two functions to calculate F-value:
-# - **f_classif**, which calculate F-value between input and output feature for classification task
-# - **f_regression**, which calculate F-value between input and output feature for classification task
-# 
-# We will use **f_classif** because the Iris dataset entails classification task.
+# Note that, target value 0 = setosa, 1 = versicolor and 2 = virginica
+#
+# Let visualize the feature values for each type of flower
 
 # CELL ********************
 
-# Import f_classif from Scikit-learn
-from sklearn.feature_selection import f_classif
+# label = 0 (setosa)
+df[df.target == 0].head(3)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
+# label = 1 (versicolor)
+df[df.target == 1].head(3)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
+# label = 2 (verginica)
+df[df.target == 2].head(3)
 
 # METADATA ********************
 
@@ -139,16 +201,16 @@ from sklearn.feature_selection import f_classif
 
 # MARKDOWN ********************
 
-# Then, we calculate F-value for each input feature in the Iris dataset by calling the following:
+# ## Build Machine Learning Model
 
 # CELL ********************
 
-# Create f_classif object to calculate F-value
-f_value = f_classif(X_data, y_data)
+#Lets create feature matrix X  and y labels
+X = df[['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']]
+y = df['target']
 
-# Print the name and F-value of each feature
-for feature in zip(feature_names, f_value[0]):
-    print(feature)
+print('X shape=', X.shape)
+print('y shape=', y.shape)
 
 # METADATA ********************
 
@@ -159,16 +221,101 @@ for feature in zip(feature_names, f_value[0]):
 
 # MARKDOWN ********************
 
-# Let's visualize the results by creating a bar chart:
+# ### Create Test And Train Dataset
+# * We will split the dataset, so that we can use one set of data for training the model and one set of data for testing the model
+# * We will keep 20% of data for testing and 80% of data for training the model
+# * If you want to learn more about it, please refer [Train Test Split tutorial](https://satishgunjal.com/train_test_split/)
 
 # CELL ********************
 
-# Create a bar chart for visualizing the F-values
-plt.figure(figsize=(4,4))
-plt.bar(x=feature_names, height=f_value[0], color='tomato')
-plt.xticks(rotation='vertical')
-plt.ylabel('F-value')
-plt.title('F-value Comparison')
+X_train,X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size= 0.2, random_state= 1)
+print('X_train dimension= ', X_train.shape)
+print('X_test dimension= ', X_test.shape)
+print('y_train dimension= ', y_train.shape)
+print('y_train dimension= ', y_test.shape)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# Now lets train the model using Decision Tree
+
+# CELL ********************
+
+"""
+To obtain a deterministic behaviour during fitting always set value for 'random_state' attribute
+Also note that default value of criteria to split the data is 'gini'
+"""
+cls = tree.DecisionTreeClassifier(random_state= 1)
+cls.fit(X_train ,y_train)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# ### Testing The Model
+# * For testing we are going to use the test data only
+# * Question: Predict the species of 10th, 20th and 29th test example from test data
+
+# CELL ********************
+
+print('Actual value of species for 10th test example=', iris.target_names[y_test.iloc[10]])
+print('Predicted value of species for 10th test example=', iris.target_names[cls.predict(X_test.iloc[[10]])][0])
+
+print('\nActual value of species for 20th test example=', iris.target_names[y_test.iloc[20]])
+print('Predicted value of species for 20th test example=', iris.target_names[cls.predict(X_test.iloc[[20]])][0])
+
+print('\nActual value of species for 30th test example=', iris.target_names[y_test.iloc[29]])
+print('Predicted value of species for 30th test example=', iris.target_names[cls.predict(X_test.iloc[[29]])][0])
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# ### Model Score
+# Check the model score using test data
+
+# CELL ********************
+
+cls.score(X_test, y_test)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# ## Visualize The Decision Tree
+# We will use scikit-learn's `plot_tree()` function so the visualization works inline without an external Graphviz executable.
+
+# CELL ********************
+
+plt.figure(figsize=(12, 8))
+tree.plot_tree(
+    cls,
+    feature_names=iris.feature_names,
+    class_names=iris.target_names,
+    filled=True,
+    rounded=True,
+)
 plt.show()
 
 # METADATA ********************
@@ -180,21 +327,96 @@ plt.show()
 
 # MARKDOWN ********************
 
-# <a id='section 1.2.'></a>
-
-# MARKDOWN ********************
-
-# ## 1.2. Variance Threshold
-# Variance threshold method removes features whose variance below a pre-defined cutoff value. It is based on the notion that features that do not vary much within themselves have low predictive power. The main weakness of variance threshold is that it does not consider  the relationship of input features with the output feature.
+# # Regression Problem Example
+# For regression exercise we are going to use sklearns Boston house prices dataset
+# Objective is to predict house price based on available data
 # 
-# It should be noted that, before performing variance thresholding, all features should be standardized so they will have the same scale. 
+# ## Understanding the Boston house dataset
+# * boston.DESCR > Complete description of dataset
+# * boston.data > Data to learn. There are 13 features, Median Value (attribute 14) is usually the target. Total 506 training sets
+#     - CRIM     per capita crime rate by town
+#     - ZN       proportion of residential land zoned for lots over 25,000 sq.ft.
+#     - INDUS    proportion of non-retail business acres per town
+#     - CHAS     Charles River dummy variable (= 1 if tract bounds river; 0 otherwise)
+#     - NOX      nitric oxides concentration (parts per 10 million)
+#     - RM       average number of rooms per dwelling
+#     - AGE      proportion of owner-occupied units built prior to 1940
+#     - DIS      weighted distances to five Boston employment centres
+#     - RAD      index of accessibility to radial highways
+#     - TAX      full-value property-tax rate per USD 10,000
+#     - PTRATIO  pupil-teacher ratio by town
+#     - B        1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town
+#     - LSTAT    % lower status of the population
+#     - MEDV     Median value of owner-occupied homes in USD 1000's
+# * boston.feature_names > Array of all 13 features ['CRIM' 'ZN' 'INDUS' 'CHAS' 'NOX' 'RM' 'AGE' 'DIS' 'RAD' 'TAX' 'PTRATIO'
+#  'B' 'LSTAT']
+# * boston.filename > CSV file name
+# * boston.target > The price valueis in $1000’s
 # 
-# Scikit-learn provides **VarianceThreshold** function to perform variance threshold method.
+# From above details its clear that X = 'boston.data' and y= 'boston.target'
+
 
 # CELL ********************
 
-# Import VarianceThreshold from Scikit-learn
-from sklearn.feature_selection import VarianceThreshold
+import pandas as pd
+import numpy as np
+
+df = pd.read_csv(
+    filepath_or_buffer="https://lib.stat.cmu.edu/datasets/boston",
+    sep=r"\s+",
+    skiprows=21,
+    header=None,
+)
+
+columns = [
+    'CRIM',
+    'ZN',
+    'INDUS',
+    'CHAS',
+    'NOX',
+    'RM',
+    'AGE',
+    'DIS',
+    'RAD',
+    'TAX',
+    'PTRATIO',
+    'B',
+    'LSTAT',
+    'MEDV',
+]
+
+features_name = [
+    'CRIM',
+    'ZN',
+    'INDUS',
+    'CHAS',
+    'NOX',
+    'RM',
+    'AGE',
+    'DIS',
+    'RAD',
+    'TAX',
+    'PTRATIO',
+    'B',
+    'LSTAT',
+]
+
+#Flatten all the values into a single long list and remove the nulls
+values_w_nulls = df.values.flatten()
+all_values = values_w_nulls[~np.isnan(values_w_nulls)]
+
+
+
+#Reshape the values to have 14 columns and make a new df out of them
+df = pd.DataFrame(
+    data = all_values.reshape(-1, len(columns)),
+    columns = columns,
+)
+
+#rename MDEV to target
+df.rename(columns={'MEDV': 'target'}, inplace=True)
+
+df
 
 # METADATA ********************
 
@@ -205,19 +427,16 @@ from sklearn.feature_selection import VarianceThreshold
 
 # MARKDOWN ********************
 
-# Then, we perform variance thresholding by calling the following:
+# ## Build Machine Learning Model
 
 # CELL ********************
 
-# Create VarianceThreshold object to perform variance thresholding
-selector = VarianceThreshold()
+#Lets create feature matrix X  and y labels
+X = df[['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT']]
+y = df['target']
 
-# Perform variance thresholding
-selector.fit_transform(X_data)
-
-# Print the name and variance of each feature
-for feature in zip(feature_names, selector.variances_):
-    print(feature)
+print('X shape=', X.shape)
+print('y shape=', y.shape)
 
 # METADATA ********************
 
@@ -228,17 +447,99 @@ for feature in zip(feature_names, selector.variances_):
 
 # MARKDOWN ********************
 
-# Let's visualize the results by creating a bar chart:
+# ### Create Test And Train Dataset
+# * We will split the dataset, so that we can use one set of data for training the model and one set of data for testing the model
+# * We will keep 20% of data for testing and 80% of data for training the model
+
 
 # CELL ********************
 
-# Create a bar chart for visualizing the variances
-plt.figure(figsize=(4,4))
-plt.bar(x=feature_names, height=selector.variances_, color='tomato')
-plt.xticks(rotation='vertical')
-plt.ylabel('Variance')
-plt.title('Variance Comparison')
+X_train,X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size= 0.2, random_state= 1)
+print('X_train dimension= ', X_train.shape)
+print('X_test dimension= ', X_test.shape)
+print('y_train dimension= ', y_train.shape)
+print('y_train dimension= ', y_test.shape)
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# Now lets train the model using Decision Tree
+
+# CELL ********************
+
+"""
+To obtain a deterministic behaviour during fitting always set value for 'random_state' attribute
+To keep the tree simple I am using max_depth = 3
+Also note that default value of criteria to split the data is 'mse' (mean squared error)
+mse is equal to variance reduction as feature selection criterion and minimizes the L2 loss using the mean of each terminal node
+"""
+dtr = tree.DecisionTreeRegressor(max_depth= 3,random_state= 1)
+dtr.fit(X_train ,y_train)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# ### Testing The Model
+# * For testing we are going to use the test data only
+# * Question: predict the values for every test set in test data
+
+# CELL ********************
+
+df_actual_vs_predicted = pd.DataFrame({
+    'Actual Price': y_test.reset_index(drop=True),
+    'Predicted Price': dtr.predict(X_test),
+})
+df_actual_vs_predicted.T
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# ### Model Score
+# Check the model score using test data
+
+# CELL ********************
+
+dtr.score(X_test, y_test)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# ## Visualize The Decision Tree
+# We will use scikit-learn's `plot_tree()` function so the visualization works inline without an external Graphviz executable.
+
+# CELL ********************
+
+plt.figure(figsize=(16, 9))
+tree.plot_tree(
+    dtr,
+    feature_names=features_name,
+    filled=True,
+    rounded=True,
+)
 plt.show()
 
 # METADATA ********************
@@ -248,817 +549,4 @@ plt.show()
 # META   "language_group": "jupyter_python"
 # META }
 
-# MARKDOWN ********************
-
-# By default, **VarianceThreshold** removes only zero-variance features. Zero-variance feature means that the feature has the same value in all instances. Suppose we want to eliminate features that have variance score below 0.2, we can specify *threshold* parameter.
-
 # CELL ********************
-
-# Create VarianceThreshold object to perform variance thresholding
-selector = VarianceThreshold(threshold=0.2)
-
-# Transform the dataset according to variance thresholding
-X_data_new = selector.fit_transform(X_data)
-
-# Print the results
-print('Number of features before variance thresholding: {}'.format(X_data.shape[1]))
-print('Number of features after variance thresholding: {}'.format(X_data_new.shape[1]))
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# As we can see, **VarianceThreshold** automatically eliminate features that have variance below 0.2. In this case, it removes **sepal width**, which has 0.188 variance. 
-
-# MARKDOWN ********************
-
-# <a id='section 1.3.'></a>
-
-# MARKDOWN ********************
-
-# ## 1.3. Mutual Information
-# Mutual information (MI) measures the dependence of one variable to another by quantifying the amount of information obtained about one feature, through the other feature. MI is symmetric and non-negative, and is zero if and only if the input and output feature are independent. Unlike ANOVA F-value, mutual information can capture non-linear relationships between input and output feature.
-# 
-# We can use Scikit-learn to calculate MI. Scikit-learn has two functions to calculate MI:
-# - **mutual_info_classif**, which calculate MI for classification task
-# - **mutual_info_regression**, which calculate MI for regression task 
-# 
-# We will use **mutual_info_classif** because the Iris dataset entails a classification task.
-
-# CELL ********************
-
-# Import mutual_info_classif from Scikit-learn
-from sklearn.feature_selection import mutual_info_classif
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# Then, we calculate MI by calling the following:
-
-# CELL ********************
-
-# Create mutual_info_classif object to calculate mutual information
-MI_score = mutual_info_classif(X_data, y_data, random_state=0)
-
-# Print the name and mutual information score of each feature
-for feature in zip(feature_names, MI_score):
-    print(feature)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# Let's visualize the results by creating a bar chart:
-
-# CELL ********************
-
-# Create a bar chart for visualizing the mutual information scores
-plt.figure(figsize=(4,4))
-plt.bar(x=feature_names, height=MI_score, color='tomato')
-plt.xticks(rotation='vertical')
-plt.ylabel('Mutual Information Score')
-plt.title('Mutual Information Score Comparison')
-
-plt.show()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# ## 1.4. Using Selector Object for Selecting Features
-# We can use **SelectKBest** from Scikit-learn to select features according to the k highest scores, determined by a filter method. First, we need to import **SelectKBest**. 
-
-# CELL ********************
-
-# Import SelectKBest from Scikit-learn
-from sklearn.feature_selection import SelectKBest
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# **SelectKBest** has two important parameters:
-# - *score_func*: the filter function that is used for feature selection 
-# - *k*: the number of top features to select 
-# 
-# Let's demonstrate **SelectKBest** by using ANOVA F-value as our filter method. We will select the top two features based on the ANOVA F-value.
-
-# CELL ********************
-
-# Create a SelectKBest object
-skb = SelectKBest(score_func=f_classif, # Set f_classif as our criteria to select features
-                  k=2)                  # Select top two features based on the criteria
-
-# Train and transform the dataset according to the SelectKBest
-X_data_new = skb.fit_transform(X_data, y_data)
-
-# Print the results
-print('Number of features before feature selection: {}'.format(X_data.shape[1]))
-print('Number of features after feature selection: {}'.format(X_data_new.shape[1]))
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# As we can see, **SelectKBest** automatically eliminate two features that have the lowest F-value. 
-# 
-# We can identify the name of selected features by calling **get_support** method. 
-
-# CELL ********************
-
-# Print the name of the selected features
-for feature_list_index in skb.get_support(indices=True):
-    print('- ' + feature_names[feature_list_index])
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# An alternative of **SelectKBest** is to use **SelectPercentile**, which select features according to a percentile of the highest scores.
-
-# MARKDOWN ********************
-
-# <a id='section 2.0.'></a>
-
-# MARKDOWN ********************
-
-# # 2.0. Wrapper Methods
-# Wrapper methods try to find a subset of features that yield the best performance for a model by training, evaluating, and comparing the model with different combinations of features. Wrapper methods enable the detection of relationships among features. However, they can be computationally expensive, especially if the number of features is high. The risk of overfitting is also high if the number of instances in the dataset is insufficient. 
-# 
-# There are some diferrences between filter and wrapper methods:
-# - Filter methods do not incorporate a machine learning model in order to determine if a feature is good or bad whereas wrapper methods use a machine learning model and train it the feature to decide if it is essential or not.
-# - Filter methods are much faster compared to wrapper methods as they do not involve training the models. On the other hand, wrapper methods are computationally costly, and in the case of massive datasets, wrapper methods are not the most effective feature selection method to consider.
-# - Filter methods may fail to find the best subset of features in situations when there is not enough data to model the statistical correlation of the features, but wrapper methods can always provide the best subset of features because of their exhaustive nature.
-# - Using features from wrapper methods in your final machine learning model can lead to overfitting as wrapper methods already train machine learning models with the features and it affects the true power of learning. But the features from filter methods will not lead to overfitting in most of the cases.
-# 
-# We will discuss three wrapper methods:
-# 1. [Exhaustive feature selection (EFS)](#section 2.1.)
-# 2. [Sequential forward selection (SFS)](#section 2.2.)
-# 3. [Sequential backward selection (SBS)](#section 2.3.)
-# 
-# Each will be discussed in the following.
-
-
-# MARKDOWN ********************
-
-# <a id='section 2.1.'></a>
-
-# MARKDOWN ********************
-
-# ## 2.1. Exhaustive Feature Selection (EFS)
-# EFS finds the best subset of features by evaluating all feature combinations. Suppose we have a dataset with three features. EFS will evaluate the following feature combinations:
-# - *feature_1*
-# - *feature_2*
-# - *feature_3*
-# - *feature_1* and *feature_2*
-# - *feature_1* and *feature_3*
-# - *feature_2* and *feature_3*
-# - *feature_1*, *feature_2*, and *feature_3*
-# 
-# EFS selects a subset that generates the best performance (e.g., accuracy, precision, recall, etc.) of the model being considered.
-# 
-# Mlxtend provides **ExhaustiveFeatureSelector** function to perform EFS.
-
-# CELL ********************
-
-# Import ExhaustiveFeatureSelector from Mlxtend
-from mlxtend.feature_selection import ExhaustiveFeatureSelector as EFS
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# EFS has five important parameters:
-# - *estimator*: the classifier that we intend to train
-# - *min_features*: the minimum number of features to select
-# - *max_features*: the maximum number of features to select
-# - *scoring*: the metric to use to evaluate the classifier
-# - *cv*: the number of cross-validations to perform
-# 
-# In this example, we use logistic regression as our classifier/estimator. 
-
-# CELL ********************
-
-# Import logistic regression from Scikit-learn
-from sklearn.linear_model import LogisticRegression
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# Then, we perform EFS by calling the following:
-
-# CELL ********************
-
-# Create a logistic regression classifier
-lr = LogisticRegression()
-
-# Create an EFS object
-efs = EFS(estimator=lr,        # Use logistic regression as the classifier/estimator
-          min_features=1,      # The minimum number of features to consider is 1
-          max_features=4,      # The maximum number of features to consider is 4
-          scoring='accuracy',  # The metric to use to evaluate the classifier is accuracy 
-          cv=5)                # The number of cross-validations to perform is 5
-
-# Train EFS with our dataset
-efs = efs.fit(X_data, y_data)
-
-# Print the results
-print('Best accuracy score: %.2f' % efs.best_score_) # best_score_ shows the best score 
-print('Best subset (indices):', efs.best_idx_)       # best_idx_ shows the index of features that yield the best score 
-print('Best subset (corresponding names):', efs.best_feature_names_) # best_feature_names_ shows the feature names 
-                                                                     # that yield the best score
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# We can transform the dataset into a new dataset containing only the subset of features that generates the best score by using **transform** method.
-
-# CELL ********************
-
-# Transform the dataset
-X_data_new = efs.transform(X_data)
-
-# Print the results
-print('Number of features before transformation: {}'.format(X_data.shape[1]))
-print('Number of features after transformation: {}'.format(X_data_new.shape[1]))
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# There is no difference between the dataset after and before the transformation because the subset that yields the best score include all of the features.
-# 
-# We can see the performance of each subset of features by calling **get_metric_dict**.
-
-# CELL ********************
-
-# Show the performance of each subset of features
-efs_results = pd.DataFrame.from_dict(efs.get_metric_dict()).T
-efs_results.sort_values(by='avg_score', ascending=True, inplace=True)
-efs_results
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# Let's visualize the performance of each subset of features by creating a horizontal bar chart:
-
-# CELL ********************
-
-# Create a horizontal bar chart for visualizing 
-# the performance of each subset of features
-fig, ax = plt.subplots(figsize=(12,9))
-y_pos = np.arange(len(efs_results))
-ax.barh(y_pos, 
-        efs_results['avg_score'],
-        xerr=efs_results['std_dev'],
-        color='tomato')
-ax.set_yticks(y_pos)
-ax.set_yticklabels(efs_results['feature_names'])
-ax.set_xlabel('Accuracy')
-plt.show()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# <a id='section 2.2.'></a>
-
-# MARKDOWN ********************
-
-# ## 2.2. Sequential Forward Selection (SFS)
-# SFS finds the best subset of feature by adding a feature that best improves the model at each iteration. 
-# 
-# Mlxtend provides **SequentialFeatureSelector** function to perform SFS.
-
-# CELL ********************
-
-# Import SequentialFeatureSelector from Mlxtend
-from mlxtend.feature_selection import SequentialFeatureSelector as SFS
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# EFS has five important parameters:
-# - *estimator*: the classifier that we intend to train
-# - *k_features*: the number of features to select. A tuple containing a min and max value can be provided, and the SFS will consider return any feature combination between min and max that scored highest in cross-validtion.
-# - *forward*: use SFS if True and use SBS if False 
-# - *scoring*: the metric to use to evaluate the classifier
-# - *cv*: the number of cross-validations to perform
-# 
-# In this example, we use logistic regression as our classifier/estimator. 
-
-# CELL ********************
-
-# Create a logistic regression classifier
-lr = LogisticRegression()
-
-# Create an SFS object
-sfs = SFS(estimator=lr,       # Use logistic regression as our classifier
-          k_features=(1, 4),  # Consider any feature combination between 1 and 4
-          forward=True,       # Set forward to True when we want to perform SFS
-          scoring='accuracy', # The metric to use to evaluate the classifier is accuracy 
-          cv=5)               # The number of cross-validations to perform is 5
-
-# Train SFS with our dataset
-sfs = sfs.fit(X_data, y_data)
-
-# Print the results
-print('Best accuracy score: %.2f' % sfs.k_score_)   # k_score_ shows the best score 
-print('Best subset (indices):', sfs.k_feature_idx_) # k_feature_idx_ shows the index of features 
-                                                    # that yield the best score
-print('Best subset (corresponding names):', sfs.k_feature_names_) # k_feature_names_ shows the feature names 
-                                                                  # that yield the best score
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# We can transform the dataset into a new dataset containing only the subset of features that generates the best score by using **transform** method.
-
-# CELL ********************
-
-# Transform the dataset
-X_data_new = sfs.transform(X_data)
-
-# Print the results
-print('Number of features before transformation: {}'.format(X_data.shape[1]))
-print('Number of features after transformation: {}'.format(X_data_new.shape[1]))
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# There is no difference between the dataset after and before the transformation because the subset that yields the best score include all of the features.
-# 
-# We can see the performance of each subset of features considered by SFS by calling **subsets_**.
-
-# CELL ********************
-
-# Show the performance of each subset of features considered by SFS
-sfs_results = pd.DataFrame.from_dict(sfs.subsets_).T 
-sfs_results
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# Let's visualize the performance of each subset of features by creating a horizontal bar chart:
-
-# CELL ********************
-
-# Create a horizontal bar chart for visualizing 
-# the performance of each subset of features
-fig, ax = plt.subplots(figsize=(6,2))
-y_pos = np.arange(len(sfs_results))
-ax.barh(y_pos, 
-        sfs_results['avg_score'], 
-        color='tomato')
-ax.set_yticks(y_pos)
-ax.set_yticklabels(sfs_results['feature_names'])
-ax.set_xlabel('Accuracy')
-plt.show()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# <a id='section 2.3.'></a>
-
-# MARKDOWN ********************
-
-# ### 2.3. Sequential Backward Selection (SBS)
-# SBS is the opposite of SFS. SBS starts with all features and removes the feature that has the least importance to the model at each iteration. 
-# 
-# To perform SBS use, we can use **SequentialFeatureSelector** by Mlxtend. This is the same function that we use to perform SFS. The different is we have to set the *k_features* parameter to False. 
-
-# CELL ********************
-
-# Create a logistic regression classifier
-lr = LogisticRegression()
-
-# Create an SBS object
-sbs = SFS(estimator=lr,       # Use logistic regression as our classifier
-          k_features=(1, 4),  # Consider any feature combination between 1 and 4
-          forward=False,      # Set forward to False when we want to perform SBS
-          scoring='accuracy', # The metric to use to evaluate the classifier is accuracy 
-          cv=5)               # The number of cross-validations to perform is 5
-
-# Train SBS with our dataset
-sbs = sbs.fit(X_data.values, y_data)
-
-# Print the results
-print('Best accuracy score: %.2f' % sbs.k_score_)   # k_score_ shows the best score 
-print('Best subset (indices):', sbs.k_feature_idx_) # k_feature_idx_ shows the index of features 
-                                                    # that yield the best score
-print('Best subset (corresponding names):', sbs.k_feature_names_) # k_feature_names_ shows the feature names 
-                                                                  # that yield the best score
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# We can transform the dataset into a new dataset containing only the subset of features that generates the best score by using **transform** method.
-
-# CELL ********************
-
-# Transform the dataset
-X_data_new = sbs.transform(X_data)
-
-# Print the results
-print('Number of features before transformation: {}'.format(X_data.shape[1]))
-print('Number of features after transformation: {}'.format(X_data_new.shape[1]))
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# There is no difference between the dataset after and before the transformation because the subset that yields the best score include all of the features.
-# 
-# We can see the performance of each subset of features considered by SFS by calling **subsets_**.
-
-# CELL ********************
-
-# Show the performance of each subset of features considered by SBS
-sbs_results = pd.DataFrame.from_dict(sbs.subsets_).T
-sbs_results
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# Let's visualize the performance of each subset of features by creating a horizontal bar chart:
-
-# CELL ********************
-
-# Create a horizontal bar chart for visualizing 
-# the performance of each subset of features
-fig, ax = plt.subplots(figsize=(6,2))
-y_pos = np.arange(len(sbs_results))
-ax.barh(y_pos, 
-        sbs_results['avg_score'], 
-        color='tomato')
-ax.set_yticks(y_pos)
-ax.set_yticklabels(sbs_results['feature_names'])
-ax.set_xlabel('Accuracy')
-plt.show()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# Let's compare the selection generated by EFS, SFS, and SBS.
-
-# CELL ********************
-
-# Compare the selection generated by EFS, SFS, and SBS
-print('Best subset by EFS:', efs.best_feature_names_)
-print('Best subset by SFS:', sfs.k_feature_names_)
-print('Best subset by SBS:', sbs.k_feature_names_)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# In this simple scenario, selecting the best combination of features out of the 4 available features in the Iris set, we end up with similar results regardless of which selection algorithms we used. In other cases with larger dataset and higher number of features, the selection is highly likely to be different for each selection algorithm.
-
-# MARKDOWN ********************
-
-# <a id='section 3.0.'></a>
-
-# MARKDOWN ********************
-
-# # 3.0. Embedded Methods (OPTIONAL !)
-# 
-# We do not look so much to these methods in class as the others however they can be used
-# Embedded methods combine the strong points of filter and wrapper methods by taking advantage of machine algorithms that have their own built-in feature selection process. They integrate a feature selection step as a part of the training process (i.e., feature selection and training process are performed simultaneously). Embedded methods generally have a more efficient process than wrapper methods because they eliminate the need to retrain every single subset of features being examined. Some of machine algorithms that can be used for feature selection are:
-# - LASSO regression
-# - Ridge regression
-# - Decision tree
-# - Random forest
-# - Support vector machine
-# 
-# In the next section, we will focus on feature selection using random forest which we will discuss in the next class and as so you can return to this topic after next class.
-
-# MARKDOWN ********************
-
-# ## 3.1. Feature Selection Using Random Forest
-# Random forest is one of the most popular learning algorithms used for feature selection in a data science workflow. As explained by Chris Albon:
-# >*"... the tree-based strategies used by random forests naturally ranks by how well they improve the purity of the node. This mean decrease in impurity over all trees (called gini impurity). Nodes with the greatest decrease in impurity happen at the start of the trees, while notes with the least decrease in impurity occur at the end of trees. Thus, by pruning trees below a particular node, we can create a subset of the most important features."*
-# 
-# To perform feature selection using random forest classifier, let's first import **RandomForestClassifier** from Scikit-learn.
-
-# CELL ********************
-
-# Import RandomForestClassifier from Scikit-learn
-from sklearn.ensemble import RandomForestClassifier
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# We need to split our dataset into train and test split because the feature selection is a part of the training process. 
-
-# CELL ********************
-
-# Import train_test_split from Scikit-learn
-from sklearn.model_selection import train_test_split
-
-# Split the dataset into 30% test and 70% training
-X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.3, random_state=0)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# Please note that we use gini criterion to define feature importance. There are other criteria of importance, but we only limit our discussion to gini criterion.
-
-# CELL ********************
-
-# Create a random forest classifier
-rfc = RandomForestClassifier(random_state=0, 
-                             criterion='gini') # Use gini criterion to define feature importance
-
-# Train the classifier
-rfc.fit(X_train, y_train)
-
-# Print the name and gini importance of each feature
-for feature in zip(feature_names, rfc.feature_importances_): 
-    print(feature)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# If we add up all the importance scores, the result is 100%. As we can see, **petal length** and **petal width** correspond to 83% of the total importance score. They are clearly the most important features!
-
-# MARKDOWN ********************
-
-# ## 3.2. Using Selector Object for Selecting Features
-# We can use **SelectFromModel** from Scikit-learn to select features according to a threshold of feature importance. First, we need to import **SelectKBest**.
-
-# CELL ********************
-
-from sklearn.feature_selection import SelectFromModel
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# **SelectFromModel** has two important parameters:
-# - *estimator*: the machine learning algorithm used to select features
-# - *threshold*: the threshold value to use for feature selection. Features whose importance is greater or equal are kept while the others are discarded.
-# 
-# Let's demonstrate **SelectFromModel** by a random forest classifier with gini importance. We will select features that have importance above 0.2. 
-
-# CELL ********************
-
-# Create a random forest classifier
-rfc = RandomForestClassifier(random_state=0, 
-                             criterion='gini') # Use gini criterion to define feature importance
-
-# Create a SelectFromModel object 
-sfm = SelectFromModel(estimator=rfc, # Use random forest classifier to identify features
-                      threshold=0.2) # that have an importance of more than 0.2
-
-# Train the selector
-sfm = sfm.fit(X_train, y_train)
-
-# Print the names of the most important features
-print('The most important features based on random forest classifier:')
-for feature_list_index in sfm.get_support(indices=True):
-    print('- ' + feature_names[feature_list_index])
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# We can transform the dataset into a new dataset containing only the most important features by using **transform** method.
-
-# CELL ********************
-
-# Transform the dataset
-X_important_train = sfm.transform(X_train)
-X_important_test = sfm.transform(X_test)
-
-# Print the results
-print('Number of features before transformation: {}'.format(X_train.shape[1]))
-print('Number of features after transformation: {}'.format(X_important_train.shape[1]))
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# ## 3.3. Comparing the Accuracy of Classifier with Full Features and with Limited Features
-# Let's compare the accuracy of a classifier with full features and a classifier with limited features (i.e., the top two important features based on random forest classifier).
-
-# CELL ********************
-
-# Import accuracy_score from Scikit-learn
-from sklearn.metrics import accuracy_score
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# CELL ********************
-
-# Create a random forest classifier
-rfc_full = RandomForestClassifier(random_state=0, criterion='gini')
-
-# Train the classifier using dataset with full features
-rfc_full.fit(X_train, y_train)
-
-# Make predictions
-pred_full = rfc_full.predict(X_test)
-
-# Generate accuracy score
-print('The accuracy of classifier with full features: {:.2f}'.format(accuracy_score(y_test, pred_full)))
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# CELL ********************
-
-# Create a random forest classifier
-rfc_lim = RandomForestClassifier(random_state=0, criterion='gini')
-
-# Train the classifier with limited features
-rfc_lim.fit(X_important_train, y_train)
-
-# Make predictions
-pred_lim = rfc_lim.predict(X_important_test)
-
-# Generate accuracy score
-print('The accuracy of classifier with limited features: {:.2f}'.format(accuracy_score(y_test, pred_lim)))
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# It can be seen that we can reduce the number of features without significantly reduce the performance of the model.
-
-# MARKDOWN ********************
-
-# ## Kepp going

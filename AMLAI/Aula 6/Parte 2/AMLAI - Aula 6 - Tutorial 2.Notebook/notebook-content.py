@@ -17,20 +17,95 @@
 
 # MARKDOWN ********************
 
-# # Text Classification with SpaCy
+# # What is Trend? #
 # 
-# A common task in NLP is **text classification**. This is "classification" in the conventional machine learning sense, and it is applied to text. Examples include spam detection, sentiment analysis, and tagging customer queries. 
+# The **trend** component of a time series represents a persistent, long-term change in the mean of the series. The trend is the slowest-moving part of a series, the part representing the largest time scale of importance. In a time series of product sales, an increasing trend might be the effect of a market expansion as more people become aware of the product year by year.
 # 
-# In this tutorial, you'll learn text classification with spaCy. The classifier will detect spam messages, a common functionality in most email clients. Here is an overview of the data you'll use:
+# <figure style="padding: 1em;">
+# <img src="https://storage.googleapis.com/kaggle-media/learn/images/ZdS4ZoJ.png" width=800, alt="">
+# <figcaption style="textalign: center; font-style: italic"><center>Trend patterns in four time series.</center></figcaption>
+# </figure>
+# 
+# In this course, we'll focus on trends in the mean. More generally though, any persistent and slow-moving change in a series could constitute a trend -- time series commonly have trends in their variation for instance.
+# 
+# # Moving Average Plots #
+# 
+# To see what kind of trend a time series might have, we can use a **moving average plot**. To compute a moving average of a time series, we compute the average of the values within a sliding window of some defined width. Each point on the graph represents the average of all the values in the series that fall within the window on either side. The idea is to smooth out any short-term fluctuations in the series so that only long-term changes remain.
+# 
+# <figure style="padding: 1em;">
+# <img src="https://storage.googleapis.com/kaggle-media/learn/images/EZOXiPs.gif" width=800, alt="An animated plot showing an undulating curve slowly increasing with a moving average line developing from left to right within a window of 12 points (in red).">
+# <figcaption style="textalign: center; font-style: italic"><center>A moving average plot illustrating a linear trend. Each point on the curve (blue) is the average of the points (red) within a window of size 12.
+# </center></figcaption>
+# </figure>
+# 
+# Notice how the *Mauna Loa* series above has a repeating up and down movement year after year -- a short-term, *seasonal* change. For a change to be a part of the trend, it should occur over a longer period than any seasonal changes. To visualize a trend, therefore, we take an average over a period longer than any seasonal period in the series. For the *Mauna Loa* series, we chose a window of size 12 to smooth over the season within each year.
+
+# MARKDOWN ********************
+
+# # Engineering Trend #
+# 
+# Once we've identified the shape of the trend, we can attempt to model it using a time-step feature. We've already seen how using the time dummy itself will model a linear trend:
+# 
+# ```
+# target = a * time + b
+# ```
+# 
+# We can fit many other kinds of trend through transformations of the time dummy. If the trend appears to be quadratic (a parabola), we just need to add the square of the time dummy to the feature set, giving us:
+# ```
+# target = a * time ** 2 + b * time + c
+# ```
+# Linear regression will learn the coefficients `a`, `b,` and `c`.
+#
+# The trend curves in the figure below were both fit using these kinds of features and scikit-learn's `LinearRegression`:
+#
+# <figure style="padding: 1em;">
+# <img src="https://storage.googleapis.com/kaggle-media/learn/images/KFYlgGm.png" width=*00, alt="Above, Cars Sold in Quebec: an undulating plot gradually increasing from 1960-01 to 1968-12 with a linear trend-line superimposed. Below, Plastics Production in Australia: an undulating plot with a concave-up quadratic trend-line superimposed.">
+# <figcaption style="textalign: center; font-style: italic"><center><strong>Top:</strong> Series with a linear trend. <strong>Below:</strong> Series with a quadratic trend.
+# </center></figcaption>
+# </figure>
+#
+# If you haven't seen the trick before, you may not have realized that linear regression can fit curves other than lines. The idea is that if you can provide curves of the appropriate shape as features, then linear regression can learn how to combine them in the way that best fits the target.
+#
+# # Example - Tunnel Traffic #
+#
+# In this example we'll create a trend model for the *Tunnel Traffic* dataset.
 
 # CELL ********************
 
+from pathlib import Path
+from warnings import simplefilter
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
-# Loading the spam data
-# ham is the label for non-spam messages
-spam = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula6/spam.csv')
-spam.head(10)
+simplefilter("ignore")  # ignore warnings to clean up output cells
+
+# Set Matplotlib defaults
+plt.style.use("seaborn-v0_8-whitegrid")
+plt.rc("figure", autolayout=True, figsize=(11, 5))
+plt.rc(
+    "axes",
+    labelweight="bold",
+    labelsize="large",
+    titleweight="bold",
+    titlesize=14,
+    titlepad=10,
+)
+plot_params = dict(
+    color="0.75",
+    style=".-",
+    markeredgecolor="0.25",
+    markerfacecolor="0.25",
+    legend=False,
+)
+%config InlineBackend.figure_format = 'retina'
+
+
+# Load Tunnel Traffic dataset
+data_dir = Path("/lakehouse/default/Files/AMLAI_Aula6/")
+tunnel = pd.read_csv(data_dir / "tunnel.csv", parse_dates=["Day"])
+tunnel = tunnel.set_index("Day").to_period()
 
 # METADATA ********************
 
@@ -41,39 +116,22 @@ spam.head(10)
 
 # MARKDOWN ********************
 
-# # Bag of Words
-# Machine learning models don't learn from raw text data. Instead, you need to convert the text to something numeric.
-# 
-# The simplest common representation is a variation of one-hot encoding. You represent each document as a vector of term frequencies for each term in the vocabulary. The vocabulary is built from all the tokens (terms) in the corpus (the collection of documents). 
-# 
-# As an example, take the sentences "Tea is life. Tea is love." and "Tea is healthy, calming, and delicious." as our corpus. The vocabulary then is `{"tea", "is", "life", "love", "healthy", "calming", "and", "delicious"}` (ignoring punctuation).
-# 
-# For each document, count up how many times a term occurs, and place that count in the appropriate element of a vector. The first sentence has "tea" twice and that is the first position in our vocabulary, so we put the number 2 in the first element of the vector. Our sentences as vectors then look like 
-# 
-# $$
-# \begin{align}
-# v_1 &= \left[\begin{matrix} 2 & 2 & 1 & 1 & 0 & 0 & 0 & 0 \end{matrix}\right] \\
-# v_2 &= \left[\begin{matrix} 1 & 1 & 0 & 0 & 1 & 1 & 1 & 1 \end{matrix}\right]
-# \end{align}
-# $$
-# 
-# This is called the **bag of words** representation. You can see that documents with similar terms will have similar vectors. Vocabularies frequently have tens of thousands of terms, so these vectors can be very large.
-# 
-# Another common representation is **TF-IDF (Term Frequency - Inverse Document Frequency)**. TF-IDF is similar to bag of words except that each term count is scaled by the term's frequency in the corpus. Using TF-IDF can potentially improve your models. You won't need it here. Feel free to look it up though!
-
-# MARKDOWN ********************
-
-# # Building a Bag of Words model
-# 
-# Once you have your documents in a bag of words representation, you can use those vectors as input to any machine learning model. spaCy handles the bag of words conversion and building a simple linear model for you with the `TextCategorizer` class.
-# 
-# The TextCategorizer is a spaCy **pipe**. Pipes are classes for processing and transforming tokens. When you create a spaCy model with `nlp = spacy.load('en_core_web_sm')`, there are default pipes that perform part of speech tagging, entity recognition, and other transformations. When you run text through a model `doc = nlp("Some text here")`, the output of the pipes are attached to the tokens in the `doc` object. The lemmas for `token.lemma_` come from one of these pipes.
-# 
-# You can remove or add pipes to models. What we'll do here is create an empty model without any pipes (other than a tokenizer, since all models always have a tokenizer). Then, we'll create a TextCategorizer pipe and add it to the empty model.
+# Let's make a moving average plot to see what kind of trend this series has. Since this series has daily observations, let's choose a window of 365 days to smooth over any short-term changes within the year.
+#
+# To create a moving average, first use the `rolling` method to begin a windowed computation. Follow this by the `mean` method to compute the average over the window. As we can see, the trend of *Tunnel Traffic* appears to be about linear.
 
 # CELL ********************
 
-%pip install spacy
+moving_average = tunnel.rolling(
+    window=365,       # 365-day window
+    center=True,      # puts the average at the center of the window
+    min_periods=183,  # choose about half the window size
+).mean()              # compute the mean (could also do median, std, min, max, ...)
+
+ax = tunnel.plot(style=".", color="0.5")
+moving_average.plot(
+    ax=ax, linewidth=3, title="Tunnel Traffic - 365-Day Moving Average", legend=False,
+);
 
 # METADATA ********************
 
@@ -81,16 +139,25 @@ spam.head(10)
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+
+# MARKDOWN ********************
+
+# In Lesson 1, we engineered our time dummy in Pandas directly. From now on, however, we'll use a function from the `statsmodels` library called `DeterministicProcess`. Using this function will help us avoid some tricky failure cases that can arise with time series and linear regression. The `order` argument refers to polynomial order: `1` for linear, `2` for quadratic, `3` for cubic, and so on.
 
 # CELL ********************
 
-import spacy
+from statsmodels.tsa.deterministic import DeterministicProcess
 
-# Create an empty model
-nlp = spacy.blank("en")
+dp = DeterministicProcess(
+    index=tunnel.index,  # dates from the training data
+    constant=True,       # dummy feature for the bias (y_intercept)
+    order=1,             # the time dummy (trend)
+    drop=True,           # drop terms if necessary to avoid collinearity
+)
+# `in_sample` creates features for the dates given in the `index` argument
+X = dp.in_sample()
 
-# Add the TextCategorizer to the empty model
-textcat = nlp.add_pipe("textcat")
+X.head()
 
 # METADATA ********************
 
@@ -101,13 +168,23 @@ textcat = nlp.add_pipe("textcat")
 
 # MARKDOWN ********************
 
-# Next we'll add the labels to the model. Here "ham" are for the real messages, "spam" are spam messages.
+# (A *deterministic process*, by the way, is a technical term for a time series that is non-random or completely *determined*, like the `const` and `trend` series are. Features derived from the time index will generally be deterministic.)
+#
+# We create our trend model basically as before, though note the addition of the `fit_intercept=False` argument.
 
 # CELL ********************
 
-# Add labels to text classifier
-textcat.add_label("ham")
-textcat.add_label("spam")
+from sklearn.linear_model import LinearRegression
+
+y = tunnel["NumVehicles"]  # the target
+
+# The intercept is the same as the `const` feature from
+# DeterministicProcess. LinearRegression behaves badly with duplicated
+# features, so we need to be sure to exclude it here.
+model = LinearRegression(fit_intercept=False)
+model.fit(X, y)
+
+y_pred = pd.Series(model.predict(X), index=X.index)
 
 # METADATA ********************
 
@@ -118,18 +195,12 @@ textcat.add_label("spam")
 
 # MARKDOWN ********************
 
-# # Training a Text Categorizer Model
-# 
-# Next, you'll convert the labels in the data to the form TextCategorizer requires. For each document, you'll create a dictionary of boolean values for each class. 
-# 
-# For example, if a text is "ham", we need a dictionary `{'ham': True, 'spam': False}`. The model is looking for these labels inside another dictionary with the key `'cats'`.
+# The trend discovered by our `LinearRegression` model is almost identical to the moving average plot, which suggests that a linear trend was the right decision in this case.
 
 # CELL ********************
 
-train_texts = spam['text'].values
-train_labels = [{'cats': {'ham': label == 'ham',
-                          'spam': label == 'spam'}} 
-                for label in spam['label']]
+ax = tunnel.plot(style=".", color="0.5", title="Tunnel Traffic - Linear Trend")
+_ = y_pred.plot(ax=ax, linewidth=3, label="Trend")
 
 # METADATA ********************
 
@@ -140,12 +211,15 @@ train_labels = [{'cats': {'ham': label == 'ham',
 
 # MARKDOWN ********************
 
-# Then we combine the texts and labels into a single list.
+# To make a forecast, we apply our model to "out of sample" features. "Out of sample" refers to times outside of the observation period of the training data. Here's how we could make a 30-day forecast:
 
 # CELL ********************
 
-train_data = list(zip(train_texts, train_labels))
-train_data[:3]
+X = dp.out_of_sample(steps=30)
+
+y_fore = pd.Series(model.predict(X), index=X.index)
+
+y_fore.head()
 
 # METADATA ********************
 
@@ -156,25 +230,14 @@ train_data[:3]
 
 # MARKDOWN ********************
 
-# Now you are ready to train the model. First, create an `optimizer` using `nlp.begin_training()`. spaCy uses this optimizer to update the model. In general it's more efficient to train models in small batches. spaCy provides the `minibatch` function that returns a generator yielding minibatches for training. Finally, the minibatches are split into texts and labels, then used with `nlp.update` to update the model's parameters.
+# Let's plot a portion of the series to see the trend forecast for the next 30 days:
 
 # CELL ********************
 
-from spacy.util import minibatch
-from spacy.training.example import Example
-
-spacy.util.fix_random_seed(1)
-optimizer = nlp.begin_training()
-
-# Create the batch generator with batch size = 8
-batches = minibatch(train_data, size=8)
-# Iterate through minibatches
-for batch in batches:
-    # Each batch is a list of (text, label) 
-    for text, labels in batch:
-        doc = nlp.make_doc(text)
-        example = Example.from_dict(doc, labels)
-        nlp.update([example], sgd=optimizer)
+ax = tunnel["2005-05":].plot(title="Tunnel Traffic - Linear Trend Forecast", **plot_params)
+ax = y_pred["2005-05":].plot(ax=ax, linewidth=3, label="Trend")
+ax = y_fore.plot(ax=ax, linewidth=3, label="Trend Forecast", color="C3")
+_ = ax.legend()
 
 # METADATA ********************
 
@@ -185,85 +248,10 @@ for batch in batches:
 
 # MARKDOWN ********************
 
-# This is just one training loop (or epoch) through the data. The model will typically need multiple epochs. Use another loop for more epochs, and optionally re-shuffle the training data at the begining of each loop. 
-
-# CELL ********************
-
-import random
-
-random.seed(1)
-spacy.util.fix_random_seed(1)
-optimizer = nlp.begin_training()
-
-losses = {}
-for epoch in range(30):
-    random.shuffle(train_data)
-    # Create the batch generator with batch size = 8
-    batches = minibatch(train_data, size=8)
-    # Iterate through minibatches
-    for batch in batches:
-        for text, labels in batch:
-            doc = nlp.make_doc(text)
-            example = Example.from_dict(doc, labels)
-            nlp.update([example], sgd=optimizer, losses=losses)
-    print(losses)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# # Making Predictions
-
-# MARKDOWN ********************
-
-# Now that you have a trained model, you can make predictions with the `predict()` method. The input text needs to be tokenized with `nlp.tokenizer`. Then you pass the tokens to the predict method which returns scores. The scores are the probability the input text belongs to the classes.
-
-# CELL ********************
-
-texts = ["Are you ready for the tea party????? It's gonna be wild",
-         "URGENT Reply to this message for GUARANTEED FREE TEA" ]
-docs = [nlp.tokenizer(text) for text in texts]
-    
-# Use textcat to get the scores for each doc
-textcat = nlp.get_pipe('textcat')
-scores = textcat.predict(docs)
-
-print(scores)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# The scores are used to predict a single class or label by choosing the label with the highest probability. You get the index of the highest probability with `scores.argmax`, then use the index to get the label string from `textcat.labels`.
-
-# CELL ********************
-
-# From the scores, find the label with the highest score/probability
-predicted_labels = scores.argmax(axis=1)
-print([textcat.labels[label] for label in predicted_labels])
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# Evaluating the model is straightforward once you have the predictions. To measure the accuracy, calculate how many correct predictions are made on some test data, divided by the total number of predictions.
-
-# MARKDOWN ********************
-
-# # Your Turn
-# Try it yourself as you **[predict the sentiment of Yelp reviews]**.
+# ---
+#
+# The trend models we learned about in this lesson turn out to be useful for a number of reasons. Besides acting as a baseline or starting point for more sophisticated models, we can also use them as a component in a "hybrid model" with algorithms unable to learn trends (like XGBoost and random forests). We'll learn more about this technique in Lesson 5.
+#
+# # Your Turn #
+#
+# [**Model trend in Store Sales**] and understand the risks of forecasting with high-order polynomials.

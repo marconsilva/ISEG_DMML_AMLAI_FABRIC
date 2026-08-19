@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "AMLAI - Aula 2 - Tutorial 3",
+    "description": "Introduction to neural networks with stacked dense layers"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "297e2298-e4f7-42e0-9495-5ba7cadecf4a"
+  }
+}

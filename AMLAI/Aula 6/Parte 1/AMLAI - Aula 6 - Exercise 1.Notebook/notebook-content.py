@@ -11,54 +11,70 @@
 # META       "default_lakehouse": "a5591839-f387-4a67-a52e-dac9b3ea21b0",
 # META       "default_lakehouse_name": "DataScienceLearnLakehouse",
 # META       "default_lakehouse_workspace_id": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
+# META     },
+# META     "environment": {
+# META       "environmentId": "8d4e4ec0-4003-41ac-8712-a74940892402",
+# META       "workspaceId": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
 # META     }
 # META   }
 # META }
 
 # MARKDOWN ********************
 
-# # Basic Text Processing with Spacy
-#     
-# You're a consultant for [DelFalco's Italian Restaurant](https://defalcosdeli.com/index.html).
-# The owner asked you to identify whether there are any foods on their menu that diners find disappointing. 
+# # Introduction #
 # 
-# <img src="https://storage.googleapis.com/kaggle-media/learn/images/8DZunAQ.jpg" alt="Meatball Sub" width="250"/>
-# 
-# Before getting started, run the following cell to set up code checking.
+# Run this cell to set everything up!
 
 # CELL ********************
 
-%pip install spacy
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-!python -m spacy download en_core_web_lg 
-!python -m spacy download en_core_web_sm
-
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-import pandas as pd
-
-# Set up code checking
+# Setup feedback system
 from learntools.core import binder
 binder.bind(globals())
-from learntools.nlp.ex1 import *
-print('Setup Complete')
+from learntools.time_series.ex1 import *
+
+import mlflow
+mlflow.autolog(disable=True)
+
+# Setup notebook
+from pathlib import Path
+from learntools.time_series.style import *  # plot style settings
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from sklearn.linear_model import LinearRegression
+
+
+
+data_dir = Path('/lakehouse/default/Files/AMLAI_Aula6')
+comp_dir = Path('/lakehouse/default/Files/AMLAI_Aula6/store-sales-time-series-forecasting')
+
+book_sales = pd.read_csv(
+    data_dir / 'book_sales.csv',
+    index_col='Date',
+    parse_dates=['Date'],
+).drop('Paperback', axis=1)
+book_sales['Time'] = np.arange(len(book_sales.index))
+book_sales['Lag_1'] = book_sales['Hardcover'].shift(1)
+book_sales = book_sales.reindex(columns=['Hardcover', 'Time', 'Lag_1'])
+
+ar = pd.read_csv(data_dir / 'ar.csv')
+
+dtype = {
+    'store_nbr': 'category',
+    'family': 'category',
+    'sales': 'float32',
+    'onpromotion': 'uint64',
+}
+store_sales = pd.read_csv(
+    comp_dir / 'train.csv',
+    dtype=dtype,
+    parse_dates=['date'],
+)
+store_sales = store_sales.set_index('date').to_period('D')
+store_sales = store_sales.set_index(['store_nbr', 'family'], append=True)
+average_sales = store_sales.groupby('date').mean()['sales']
 
 # METADATA ********************
 
@@ -69,13 +85,18 @@ print('Setup Complete')
 
 # MARKDOWN ********************
 
-# The business owner suggested you use diner reviews from the Yelp website to determine which dishes people liked and disliked. You pulled the data from Yelp. Before you get to analysis, run the code cell below for a quick look at the data you have to work with.
+# --------------------------------------------------------------------------------
+#
+# One advantage linear regression has over more complicated algorithms is that the models it creates are *explainable* -- it's easy to interpret what contribution each feature makes to the predictions. In the model `target = weight * feature + bias`, the `weight` tells you by how much the `target` changes on average for each unit of change in the `feature`.
+#
+# Run the next cell to see a linear regression on *Hardcover Sales*.
 
 # CELL ********************
 
-# Load in the data from JSON file
-data = pd.read_json('/lakehouse/default/Files/AMLAI_Aula6/restaurant.json')
-data.head()
+fig, ax = plt.subplots()
+ax.plot('Time', 'Hardcover', data=book_sales, color='0.75')
+ax = sns.regplot(x='Time', y='Hardcover', data=book_sales, ci=None, scatter_kws=dict(color='0.25'))
+ax.set_title('Time Plot of Hardcover Sales');
 
 # METADATA ********************
 
@@ -86,95 +107,14 @@ data.head()
 
 # MARKDOWN ********************
 
-# The owner also gave you this list of menu items and common alternate spellings.
+# # 1) Interpret linear regression with the time dummy
+#
+# The linear regression line has an equation of (approximately) `Hardcover = 3.33 * Time + 150.5`. Over 6 days how much on average would you expect hardcover sales to change? After you've thought about it, run the next cell.
 
 # CELL ********************
 
-menu = ["Cheese Steak", "Cheesesteak", "Steak and Cheese", "Italian Combo", "Tiramisu", "Cannoli",
-        "Chicken Salad", "Chicken Spinach Salad", "Meatball", "Pizza", "Pizzas", "Spaghetti",
-        "Bruchetta", "Eggplant", "Italian Beef", "Purista", "Pasta", "Calzones",  "Calzone",
-        "Italian Sausage", "Chicken Cutlet", "Chicken Parm", "Chicken Parmesan", "Gnocchi",
-        "Chicken Pesto", "Turkey Sandwich", "Turkey Breast", "Ziti", "Portobello", "Reuben",
-        "Mozzarella Caprese",  "Corned Beef", "Garlic Bread", "Pastrami", "Roast Beef",
-        "Tuna Salad", "Lasagna", "Artichoke Salad", "Fettuccini Alfredo", "Chicken Parmigiana",
-        "Grilled Veggie", "Grilled Veggies", "Grilled Vegetable", "Mac and Cheese", "Macaroni",  
-         "Prosciutto", "Salami"]
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# # Step 1: Plan Your Analysis
-
-# MARKDOWN ********************
-
-# Given the data from Yelp and the list of menu items, do you have any ideas for how you could find which menu items have disappointed diners?
-# 
-# Think about your answer. Then run the cell below to see one approach.
-
-# CELL ********************
-
-# Check your answer (Run this code cell !)
-q_1.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# # Step 2: Find items in one review
-# 
-# You'll pursue this plan of calculating average scores of the reviews mentioning each menu item.
-# 
-# As a first step, you'll write code to extract the foods mentioned in a single review.
-# 
-# Since menu items are multiple tokens long, you'll use `PhraseMatcher` which can match series of tokens.
-# 
-# Fill in the `____` values below to get a list of items matching a single menu item.
-
-# CELL ********************
-
-import spacy
-from spacy.matcher import PhraseMatcher
-
-index_of_review_to_test_on = 14
-text_to_test_on = data.text.iloc[index_of_review_to_test_on]
-
-# Load the SpaCy model
-nlp = spacy.blank('en')
-
-# Create the tokenized version of text_to_test_on
-review_doc = ____
-
-# Create the PhraseMatcher object. The tokenizer is the first argument. Use attr = 'LOWER' to make consistent capitalization
-matcher = PhraseMatcher(nlp.vocab, attr='LOWER')
-
-# Create a list of tokens for each item in the menu
-menu_tokens_list = [____ for item in menu]
-
-# Add the item patterns to the matcher. 
-# Look at https://spacy.io/api/phrasematcher#add in the docs for help with this step
-# Then uncomment the lines below 
-
-# 
-#matcher.add("MENU",            # Just a name for the set of rules we're matching to
-#            ____  
-#           )
-
-# Find matches in the review_doc
-# matches = ____
-
-# Uncomment to check your work
-#q_2.check()
+# View the solution (Run this line to receive credit!)
+q_1.check()
 
 # METADATA ********************
 
@@ -185,9 +125,61 @@ menu_tokens_list = [____ for item in menu]
 
 # CELL ********************
 
-# Lines below will give you a hint or solution code
+# Uncomment the next line for a hint
+q_1.hint()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# -------------------------------------------------------------------------------
+# 
+# Interpreting the regression coefficients can help us recognize serial dependence in a time plot. Consider the model `target = weight * lag_1 + error`, where `error` is random noise and `weight` is a number between -1 and 1. The `weight` in this case tells you how likely the next time step will have the same sign as the previous time step: a `weight` close to 1 means `target` will likely have the same sign as the previous step, while a `weight` close to -1 means `target` will likely have the opposite sign.
+# 
+# # 2) Interpret linear regression with a lag feature
+# 
+# Run the following cell to see two series generated according to the model just described.
+
+# CELL ********************
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(11, 5.5), sharex=True)
+ax1.plot(ar['ar1'])
+ax1.set_title('Series 1')
+ax2.plot(ar['ar2'])
+ax2.set_title('Series 2');
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# One of these series has the equation `target = 0.95 * lag_1 + error` and the other has the equation `target = -0.95 * lag_1 + error`, differing only by the sign on the lag feature. Can you tell which equation goes with each series?
+
+# CELL ********************
+
+# View the solution (Run this cell !)
+q_2.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Uncomment the next line for a hint
 q_2.hint()
-q_2.solution()
 
 # METADATA ********************
 
@@ -198,50 +190,39 @@ q_2.solution()
 
 # MARKDOWN ********************
 
-# After implementing the above cell, uncomment the following cell to print the matches.
+# -------------------------------------------------------------------------------
+# 
+# Now we'll get started with the *Store Sales - Time Series Forecasting* competition data. The entire dataset comprises almost 1800 series recording store sales across a variety of product families from 2013 into 2017. For this lesson, we'll just work with a single series (`average_sales`) of the average sales each day.
+# 
+# # 3) Fit a time-step feature
+# 
+# Complete the code below to create a linear regression model with a time-step feature on the series of average product sales. The target is in a column called `'sales'`.
 
 # CELL ********************
 
-# for match in matches:
-#    print(f"Token number {match[1]}: {review_doc[match[1]:match[2]]}")
+from sklearn.linear_model import LinearRegression
 
-# METADATA ********************
+df = average_sales.to_frame()
 
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
+# YOUR CODE HERE: Create a time dummy
+time = ____
 
-# MARKDOWN ********************
+df['time'] = time
 
-# # Step 3: Matching on the whole dataset
-# 
-# Now run this matcher over the whole dataset and collect ratings for each menu item. Each review has a rating, `review.stars`. For each item that appears in the review text (`review.text`), append the review's rating to a list of ratings for that item. The lists are kept in a dictionary `item_ratings`.
-# 
-# To get the matched phrases, you can reference the `PhraseMatcher` documentation for the structure of each match object:
-# 
-# >A list of `(match_id, start, end)` tuples, describing the matches. A match tuple describes a span `doc[start:end]`. The `match_id` is the ID of the added match pattern.
+# YOUR CODE HERE: Create training data
+X = ____  # features
+y = ____  # target
 
-# CELL ********************
+# Train the model
+model = LinearRegression()
+model.fit(X, y)
 
-from collections import defaultdict
+# Store the fitted values as a time series with the same time index as
+# the training data
+y_pred = pd.Series(model.predict(X), index=X.index)
 
-# item_ratings is a dictionary of lists. If a key doesn't exist in item_ratings,
-# the key is added with an empty list as the value.
-item_ratings = defaultdict(list)
 
-for idx, review in data.iterrows():
-    doc = ____
-    # Using the matcher from the previous exercise
-    matches = ____
-    
-    # Create a set of the items found in the review text
-    found_items = ____
-    
-    # Update item_ratings with rating for each item in found_items
-    # Transform the item strings to lowercase to make it case insensitive
-    ____
-
+# Check your answer
 q_3.check()
 
 # METADATA ********************
@@ -266,18 +247,51 @@ q_3.solution()
 
 # MARKDOWN ********************
 
-# # Step 4: What's the worst reviewed item?
-# 
-# Using these item ratings, find the menu item with the worst average rating.
+# Run this cell if you'd like to see a plot of the result.
 
 # CELL ********************
 
-# Calculate the mean ratings for each menu item as a dictionary
-mean_ratings = ____
+ax = y.plot(**plot_params, alpha=0.5)
+ax = y_pred.plot(ax=ax, linewidth=3)
+ax.set_title('Time Plot of Total Store Sales');
 
-# Find the worst item, and write it as a string in worst_item. This can be multiple lines of code if you want.
-worst_item = ____
+# METADATA ********************
 
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# -------------------------------------------------------------------------------
+#
+# # 4) Fit a lag feature to Store Sales
+#
+# Complete the code below to create a linear regression model with a lag feature on the series of average product sales. The target is in a column of `df` called `'sales'`.
+
+# CELL ********************
+
+df = average_sales.to_frame()
+
+# YOUR CODE HERE: Create a lag feature from the target 'sales'
+lag_1 = ____
+
+df['lag_1'] = lag_1  # add to dataframe
+
+X = df.loc[:, ['lag_1']].dropna()  # features
+y = df.loc[:, 'sales']  # target
+y, X = y.align(X, join='inner')  # drop corresponding values in target
+
+# YOUR CODE HERE: Create a LinearRegression instance and fit it to X and y.
+model = ____
+
+# YOUR CODE HERE: Create Store the fitted values as a time series with
+# the same time index as the training data
+y_pred = ____
+
+
+# Check your answer
 q_4.check()
 
 # METADATA ********************
@@ -300,13 +314,16 @@ q_4.solution()
 # META   "language_group": "synapse_pyspark"
 # META }
 
+# MARKDOWN ********************
+
+# Run the next cell if you'd like to see the result.
+
 # CELL ********************
 
-# After implementing the above cell, uncomment and run this to print 
-# out the worst item, along with its average rating. 
-
-#print(worst_item)
-#print(mean_ratings[worst_item])
+fig, ax = plt.subplots()
+ax.plot(X['lag_1'], y, '.', color='0.25')
+ax.plot(X['lag_1'], y_pred)
+ax.set(aspect='equal', ylabel='sales', xlabel='lag_1', title='Lag Plot of Average Sales');
 
 # METADATA ********************
 
@@ -317,66 +334,6 @@ q_4.solution()
 
 # MARKDOWN ********************
 
-# # Step 5: Are counts important here?
+# # Keep Going #
 # 
-# Similar to the mean ratings, you can calculate the number of reviews for each item.
-
-# CELL ********************
-
-counts = {item: len(ratings) for item, ratings in item_ratings.items()}
-
-item_counts = sorted(counts, key=counts.get, reverse=True)
-for item in item_counts:
-    print(f"{item:>25}{counts[item]:>5}")
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# Here is code to print the 10 best and 10 worst rated items. Look at the results, and decide whether you think it's important to consider the number of reviews when interpreting scores of which items are best and worst.
-
-# CELL ********************
-
-sorted_ratings = sorted(mean_ratings, key=mean_ratings.get)
-
-print("Worst rated menu items:")
-for item in sorted_ratings[:10]:
-    print(f"{item:20} Ave rating: {mean_ratings[item]:.2f} \tcount: {counts[item]}")
-    
-print("\n\nBest rated menu items:")
-for item in sorted_ratings[-10:]:
-    print(f"{item:20} Ave rating: {mean_ratings[item]:.2f} \tcount: {counts[item]}")
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# Run the following line after you've decided your answer.
-
-# CELL ********************
-
-# Check your answer (Run this code cell to receive credit!)
-q_5.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# # Keep Going
-# 
-# Now that you are ready to combine your NLP skills with your ML skills, **[see how it's done](#$NEXT_NOTEBOOK_URL$)**.
+# [**Model trend**] in time series with moving average plots and the time dummy.

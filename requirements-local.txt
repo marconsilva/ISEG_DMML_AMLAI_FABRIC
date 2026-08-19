@@ -5,7 +5,7 @@
 setuptools<81
 # Bundled course exercise helpers imported by the notebooks.
 Envs/ENV-Aulas-Latest.Environment/Libraries/CustomLibraries/learntools-0.3.4-py2.py3-none-any.whl
-pandas
+pandas>=2,<3
 numpy
 matplotlib
 seaborn

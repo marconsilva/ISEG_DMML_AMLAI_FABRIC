@@ -27,31 +27,40 @@
 
 # MARKDOWN ********************
 
-# Most people find target leakage very tricky until they've thought about it for a long time.
+# ## Recap
+# You've built a model. In this exercise you will test how good your model is.
 # 
-# So, before trying to think about leakage in the housing price example, we'll go through a few examples in other applications. Things will feel more familiar once you come back to a question about house prices.
-# 
-# # Setup
-# 
-# The questions below will give you feedback on your answers. Run the following cell to set up the feedback system.
+# Run the cell below to set up your coding environment where the previous exercise left off.
 
 # CELL ********************
 
-%pip install /lakehouse/default/Files/Env/learntools-0.3.4-py2.py3-none-any.whl
+# Code you have previously used to load data
+import pandas as pd
+from sklearn.tree import DecisionTreeRegressor
+import mlflow
+mlflow.autolog(disable=True)
 
-# METADATA ********************
 
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
+# Path of the file to read
+iowa_file_path = '/lakehouse/default/Files/DMML_Aula5/home-data-for-ml-course/train.csv'
 
-# CELL ********************
+home_data = pd.read_csv(iowa_file_path)
+y = home_data.SalePrice
+feature_columns = ['LotArea', 'YearBuilt', '1stFlrSF', '2ndFlrSF', 'FullBath', 'BedroomAbvGr', 'TotRmsAbvGrd']
+X = home_data[feature_columns]
+
+# Specify Model
+iowa_model = DecisionTreeRegressor()
+# Fit Model
+iowa_model.fit(X, y)
+
+print("First in-sample predictions:", iowa_model.predict(X.head()))
+print("Actual target values for those homes:", y.head().tolist())
 
 # Set up code checking
 from learntools.core import binder
 binder.bind(globals())
-from learntools.ml_intermediate.ex7 import *
+from learntools.machine_learning.ex4 import *
 print("Setup Complete")
 
 # METADATA ********************
@@ -63,135 +72,26 @@ print("Setup Complete")
 
 # MARKDOWN ********************
 
-# # Step 1: The Data Science of Shoelaces
+# # Exercises
 # 
-# Nike has hired you as a data science consultant to help them save money on shoe materials. Your first assignment is to review a model one of their employees built to predict how many shoelaces they'll need each month. The features going into the machine learning model include:
-# - The current month (January, February, etc)
-# - Advertising expenditures in the previous month
-# - Various macroeconomic features (like the unemployment rate) as of the beginning of the current month
-# - The amount of leather they ended up using in the current month
+# ## Step 1: Split Your Data
+# Use the `train_test_split` function to split up your data.
 # 
-# The results show the model is almost perfectly accurate if you include the feature about how much leather they used. But it is only moderately accurate if you leave that feature out. You realize this is because the amount of leather they use is a perfect indicator of how many shoes they produce, which in turn tells you how many shoelaces they need.
+# Give it the argument `random_state=1` so the `check` functions know what to expect when verifying your code.
 # 
-# Do you think the _leather used_ feature constitutes a source of data leakage? If your answer is "it depends," what does it depend on?
-# 
-# After you have thought about your answer, check it against the solution below.
+# Recall, your features are loaded in the DataFrame **X** and your target is loaded in **y**.
 
 
 # CELL ********************
 
-# Check your answer (Run this code cell to receive credit!)
-q_1.check()
+# Import the train_test_split function and uncomment
+# from _ import _
 
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# # Step 2: Return of the Shoelaces
-# 
-# You have a new idea. You could use the amount of leather Nike ordered (rather than the amount they actually used) leading up to a given month as a predictor in your shoelace model.
-# 
-# Does this change your answer about whether there is a leakage problem? If you answer "it depends," what does it depend on?
-
-# CELL ********************
-
-# Check your answer (Run this code cell to receive credit!)
-q_2.check()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# # Step 3: Getting Rich With Cryptocurrencies?
-# 
-# You saved Nike so much money that they gave you a bonus. Congratulations.
-# 
-# Your friend, who is also a data scientist, says he has built a model that will let you turn your bonus into millions of dollars. Specifically, his model predicts the price of a new cryptocurrency (like Bitcoin, but a newer one) one day ahead of the moment of prediction. His plan is to purchase the cryptocurrency whenever the model says the price of the currency (in dollars) is about to go up.
-# 
-# The most important features in his model are:
-# - Current price of the currency
-# - Amount of the currency sold in the last 24 hours
-# - Change in the currency price in the last 24 hours
-# - Change in the currency price in the last 1 hour
-# - Number of new tweets in the last 24 hours that mention the currency
-# 
-# The value of the cryptocurrency in dollars has fluctuated up and down by over $\$$100 in the last year, and yet his model's average error is less than $\$$1. He says this is proof his model is accurate, and you should invest with him, buying the currency whenever the model says it is about to go up.
-# 
-# Is he right? If there is a problem with his model, what is it?
-
-
-# CELL ********************
-
-# Check your answer (Run this code cell to receive credit!)
-q_3.check()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# # Step 4: Preventing Infections
-# 
-# An agency that provides healthcare wants to predict which patients from a rare surgery are at risk of infection, so it can alert the nurses to be especially careful when following up with those patients.
-# 
-# You want to build a model. Each row in the modeling dataset will be a single patient who received the surgery, and the prediction target will be whether they got an infection.
-# 
-# Some surgeons may do the procedure in a manner that raises or lowers the risk of infection. But how can you best incorporate the surgeon information into the model?
-# 
-# You have a clever idea. 
-# 1. Take all surgeries by each surgeon and calculate the infection rate among those surgeons.
-# 2. For each patient in the data, find out who the surgeon was and plug in that surgeon's average infection rate as a feature.
-# 
-# Does this pose any target leakage issues?
-# Does it pose any train-test contamination issues?
-
-# CELL ********************
-
-# Check your answer (Run this code cell to receive credit!)
-q_4.check()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# # Step 5: Housing Prices
-# 
-# You will build a model to predict housing prices.  The model will be deployed on an ongoing basis, to predict the price of a new house when a description is added to a website.  Here are four features that could be used as predictors.
-# 1. Size of the house (in square meters)
-# 2. Average sales price of homes in the same neighborhood
-# 3. Latitude and longitude of the house
-# 4. Whether the house has a basement
-# 
-# You have historic data to train and validate the model.
-# 
-# Which of the features is most likely to be a source of leakage?
-
-# CELL ********************
-
-# Fill in the line below with one of 1, 2, 3 or 4.
-potential_leakage_feature = ____
+# fill in and uncomment
+# train_X, val_X, train_y, val_y = ____
 
 # Check your answer
-q_5.check()
+step_1.check()
 
 # METADATA ********************
 
@@ -202,8 +102,10 @@ q_5.check()
 
 # CELL ********************
 
-q_5.hint()
-q_5.solution()
+# The lines below will show you a hint or the solution.
+# step_1.hint()
+# step_1.solution()
+
 
 # METADATA ********************
 
@@ -214,9 +116,135 @@ q_5.solution()
 
 # MARKDOWN ********************
 
-# # Conclusion
-# Leakage is a hard and subtle issue. You should be proud if you picked up on the issues in these examples.
+# ## Step 2: Specify and Fit the Model
 # 
-# Now you have the tools to make highly accurate models, and pick up on the most difficult practical problems that arise with applying these models to solve real problems.
+# Create a `DecisionTreeRegressor` model and fit it to the relevant data.
+# Set `random_state` to 1 again when creating the model.
+
+# CELL ********************
+
+# You imported DecisionTreeRegressor in your last exercise
+# and that code has been copied to the setup code above. So, no need to
+# import it again
+
+# Specify the model
+iowa_model = ____
+
+# Fit iowa_model with the training data.
+____
+
+# Check your answer
+step_2.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
+# step_2.hint()
+# step_2.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# ## Step 3: Make Predictions with Validation data
+
+
+# CELL ********************
+
+# Predict with all validation observations
+val_predictions = ____
+
+# Check your answer
+step_3.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
+# step_3.hint()
+# step_3.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# Inspect your predictions and actual values from validation data.
+
+# CELL ********************
+
+# print the top few validation predictions
+print(____)
+# print the top few actual prices from validation data
+print(____)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# What do you notice that is different from what you saw with in-sample predictions (which are printed after the top code cell in this page).
 # 
+# Do you remember why validation predictions differ from in-sample (or training) predictions? This is an important idea from the last lesson.
+# 
+# ## Step 4: Calculate the Mean Absolute Error in Validation Data
+
+
+# CELL ********************
+
+from sklearn.metrics import mean_absolute_error
+val_mae = ____
+
+# uncomment following line to see the validation_mae
+#print(val_mae)
+
+# Check your answer
+step_4.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
+# step_4.hint()
+# step_4.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# Is that MAE good?  There isn't a general rule for what values are good that applies across applications. But you'll see how to use (and improve) this number.
 

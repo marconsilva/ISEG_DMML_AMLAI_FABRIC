@@ -17,21 +17,18 @@
 # META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
 # META         }
 # META       ]
-# META     },
-# META     "environment": {
-# META       "environmentId": "85eb7531-0beb-4054-9c4a-d10a6e21679e",
-# META       "workspaceId": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
 # META     }
 # META   }
 # META }
 
 # MARKDOWN ********************
 
-# In this exercise, you'll apply what you learned in the **Character encodings** tutorial.
+# Now it's your turn to test your new knowledge of **Calculating evaluation metrics** handling.
 # 
 # # Setup
 # 
-# The questions below will give you feedback on your work. Run the following cell to set up the feedback system.
+# We will build the confusion matrix and calculate the classification metrics for the Pima Indian Diabetes dataset from the UCI Machine Learning Repository.
+# For the classification task, we will use a Logistic Regression
 
 # CELL ********************
 
@@ -46,9 +43,11 @@
 
 # CELL ********************
 
+# Set up code checking
+import os
 from learntools.core import binder
 binder.bind(globals())
-from learntools.data_cleaning.ex4 import *
+from learntools.log_reg.ex4 import *
 print("Setup Complete")
 
 # METADATA ********************
@@ -58,23 +57,39 @@ print("Setup Complete")
 # META   "language_group": "jupyter_python"
 # META }
 
-# MARKDOWN ********************
-
-# # Get our environment set up
-# 
-# The first thing we'll need to do is load in the libraries we'll be using.
-
 # CELL ********************
 
-# modules we'll use
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+%matplotlib inline
+try:
+    import mlflow
+except ImportError:
+    mlflow = None
+if mlflow is not None:
+    mlflow.autolog(disable=True)
 
-# helpful character encoding module
-import charset_normalizer
+from sklearn import metrics
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
 
-# set seed for reproducibility
-np.random.seed(0)
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
+data_filepath = "/lakehouse/default/Files/DMML_Aula3/pima-indians-diabetes.data"
+
+col_names = ['pregnant', 'glucose', 'bp', 'skin', 'insulin', 'bmi', 'pedigree', 'age','label']
+dataset = pd.read_csv(data_filepath, header=None, names=col_names)
+
+dataset.head()
 
 # METADATA ********************
 
@@ -85,15 +100,23 @@ np.random.seed(0)
 
 # MARKDOWN ********************
 
-# # 1) What are encodings?
-# 
-# You're working with a dataset composed of bytes.  Run the code cell below to print a sample entry.
+# Use the next code cell to check the data.
 
 # CELL ********************
 
-sample_entry = b'\xa7A\xa6n'
-print(sample_entry)
-print('data type:', type(sample_entry))
+dataset.value_counts()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
+dataset.describe()
+
 
 # METADATA ********************
 
@@ -104,16 +127,50 @@ print('data type:', type(sample_entry))
 
 # MARKDOWN ********************
 
-# You notice that it doesn't use the standard UTF-8 encoding. 
+#
+# # Step 1: Model Creation and Fit
 # 
-# Use the next code cell to create a variable `new_entry` that changes the encoding from `"big5-tw"` to `"utf-8"`.  `new_entry` should have the bytes datatype.
+# Run the code cell below without changes to split the data into train and test.
 
 # CELL ********************
 
-new_entry = ____
+# define X and y
+feature_cols = ['pregnant', 'insulin', 'bmi', 'age']
+X = dataset[feature_cols]
+y = dataset.label
 
-# Check your answer
-q1.check()
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
+from sklearn.model_selection import train_test_split
+X_train, val_X, y_train, val_y = train_test_split(X, y, random_state=0)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# 
+# Create your logistic regression model with the random state equals to 42 and fit the training data
+
+# CELL ********************
+
+#Your code goes here
+#model =  ____
+
+
+# Check your answers
+step_1.check()
 
 # METADATA ********************
 
@@ -125,8 +182,8 @@ q1.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-q1.hint()
-q1.solution()
+step_1.hint()
+step_1.solution()
 
 # METADATA ********************
 
@@ -137,34 +194,17 @@ q1.solution()
 
 # MARKDOWN ********************
 
-# # 2) Reading in files with encoding problems
+# ### Step 2: Model Inference Test Data
 # 
-# Use the code cell below to read in this file at path `"/lakehouse/default/Files/DMML_Aula3/PoliceKillingsUS.csv"`.  
-# 
-# Figure out what the correct encoding should be and read in the file to a DataFrame `police_killings`.
+# Make predictions for your model and calculate the accuracy
 
 # CELL ********************
 
-# TODO: Load in the DataFrame correctly.
-police_killings = ____
+#pred_y = ______
+#accuracy = ______
 
-# Check your answer
-q2.check()
 
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# MARKDOWN ********************
-
-# Feel free to use any additional code cells for supplemental work.  To get credit for finishing this question, you'll need to run `q2.check()` and get a result of **Correct**.
-
-# CELL ********************
-
-# (Optional) Use this code cell for any additional work.
+step_2.check()
 
 # METADATA ********************
 
@@ -176,8 +216,8 @@ q2.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-q2.hint()
-q2.solution()
+step_2.hint()
+step_2.solution()
 
 # METADATA ********************
 
@@ -188,7 +228,113 @@ q2.solution()
 
 # MARKDOWN ********************
 
+# # Step 3: Calculate Precision
 # 
-# # Keep going
+# Now your goal will be to calculate the precision
 # 
-# In the next lesson, learn how to [**clean up inconsistent text entries**] in your dataset.
+
+
+# CELL ********************
+
+#precision = _______
+
+
+step_3.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
+# Lines below will give you a hint or solution code
+step_3.hint()
+step_3.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# # Step 4: Calculate Recall
+#
+# Now your goal will be to calculate the Recall
+
+
+# CELL ********************
+
+#recall = _______
+
+step_4.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+
+# CELL ********************
+
+# Lines below will give you a hint or solution code
+step_4.hint()
+step_4.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# You can calculate more metrics like for example F1 Score
+
+# CELL ********************
+
+f1score = metrics.f1_score(val_y, pred_y)
+print(f1score)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# # Step 5: Confusion Matrix
+# 
+# Finally, calculate the confusion matrix for the classifier. We'll also normalize the confusion matrix to get it terms of rates.
+
+
+# CELL ********************
+
+from sklearn.metrics import confusion_matrix
+print(confusion_matrix(val_y, pred_y,labels=[1,0]))
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.heatmap(confusion_matrix(val_y, pred_y),annot=True,lw =2,cbar=False)
+plt.ylabel("True Values")
+plt.xlabel("Predicted Values")
+plt.title("CONFUSION MATRIX VISUALIZATION")
+plt.show()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }

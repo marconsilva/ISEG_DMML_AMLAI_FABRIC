@@ -11,173 +11,66 @@
 # META       "default_lakehouse": "a5591839-f387-4a67-a52e-dac9b3ea21b0",
 # META       "default_lakehouse_name": "DataScienceLearnLakehouse",
 # META       "default_lakehouse_workspace_id": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
+# META     },
+# META     "environment": {
+# META       "environmentId": "8d4e4ec0-4003-41ac-8712-a74940892402",
+# META       "workspaceId": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
 # META     }
 # META   }
 # META }
 
 # MARKDOWN ********************
 
-# # Long Short Term Memory (LSTMs) - Exercise
+# # Introduction #
 # 
-# In the last tutorial we have explored a lot around the theory of LSTM and how you could apply LSTM for text generation, now we will work with international airline passenger data. 
-
-
-# MARKDOWN ********************
-
-# <a id="41"></a>
-# ### Loading and Visualizing Data
+# Run this cell to set everything up!
 
 # CELL ********************
 
-import numpy
-import pandas as pd 
-import matplotlib.pyplot as plt
-import math
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import LSTM
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# Run the cell bellow for finalizing set up
-
-# MARKDOWN ********************
-
-
-# CELL ********************
-
-# Set up code checking
-import os
+# Setup feedback system
 from learntools.core import binder
 binder.bind(globals())
-from learntools.RNN_LSTM.ex5 import *
-print("Setup Complete")
+from learntools.time_series.ex5 import *
 
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-data = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula6/international-airline-passengers.csv',skipfooter=5) # The last 5 data was contaminated
-data.head()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-dataset = data.iloc[:,1].values
-plt.plot(dataset)
-plt.xlabel("time")
-plt.ylabel("Number of Passenger")
-plt.title("international airline passenger")
-plt.show()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# <a id="42"></a>
-# ### Preprocessing Data
-# * Reshape
-# * Change type
-# * Scaling
-# * Train test split
-# * Create dataset
-
-# CELL ********************
-
-dataset = dataset.reshape(-1,1)
-dataset = dataset.astype("float32")
-dataset.shape
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# scaling 
-scaler = MinMaxScaler(feature_range=(0, 1))
-dataset = scaler.fit_transform(dataset)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-train_size = int(len(dataset) * 0.50)
-test_size = len(dataset) - train_size
-train = dataset[0:train_size,:]
-test = dataset[train_size:len(dataset),:]
-print("train size: {}, test size: {} ".format(len(train), len(test)))
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-time_stemp = 10
-dataX = []
-dataY = []
-for i in range(len(train)-time_stemp-1):
-    a = train[i:(i+time_stemp), 0]
-    dataX.append(a)
-    dataY.append(train[i + time_stemp, 0])
-trainX = numpy.array(dataX)
-trainY = numpy.array(dataY)  
+import mlflow
+mlflow.autolog(disable=True)
 
 
-# METADATA ********************
+# Setup notebook
+from pathlib import Path
+from learntools.time_series.style import *  # plot style settings
 
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import LabelEncoder
+from statsmodels.tsa.deterministic import DeterministicProcess
+from xgboost import XGBRegressor
 
-# CELL ********************
 
-dataX = []
-dataY = []
-for i in range(len(test)-time_stemp-1):
-    a = test[i:(i+time_stemp), 0]
-    dataX.append(a)
-    dataY.append(test[i + time_stemp, 0])
-testX = numpy.array(dataX)
-testY = numpy.array(dataY)  
+comp_dir = Path('/lakehouse/default/Files/AMLAI_Aula6/store-sales-time-series-forecasting')
+data_dir = Path("/lakehouse/default/Files/AMLAI_Aula6")
+
+store_sales = pd.read_csv(
+    comp_dir / 'train.csv',
+    usecols=['store_nbr', 'family', 'date', 'sales', 'onpromotion'],
+    dtype={
+        'store_nbr': 'category',
+        'family': 'category',
+        'sales': 'float32',
+    },
+    parse_dates=['date'],
+)
+store_sales['date'] = store_sales.date.dt.to_period('D')
+store_sales = store_sales.set_index(['store_nbr', 'family', 'date']).sort_index()
+
+family_sales = (
+    store_sales
+    .groupby(['family', 'date'])
+    .mean()
+    .unstack('family')
+    .loc['2017']
+)
 
 # METADATA ********************
 
@@ -188,29 +81,165 @@ testY = numpy.array(dataY)
 
 # MARKDOWN ********************
 
-# # Step 1: reshape the Data
+# -------------------------------------------------------------------------------
+#
+# In the next two questions, you'll create a boosted hybrid for the *Store Sales* dataset by implementing a new Python class. Run this cell to create the initial class definition. You'll add `fit` and `predict` methods to give it a scikit-learn like interface.
+
+
+# CELL ********************
+
+# You'll add fit and predict methods to this minimal class
+class BoostedHybrid:
+    def __init__(self, model_1, model_2):
+        self.model_1 = model_1
+        self.model_2 = model_2
+        self.y_columns = None  # store column names from fit method
+
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# # 1) Define fit method for boosted hybrid
+#
+# Complete the `fit` definition for the `BoostedHybrid` class. Refer back to steps 1 and 2 from the **Hybrid Forecasting with Residuals** section in the tutorial if you need.
+
+# CELL ********************
+
+def fit(self, X_1, X_2, y):
+    # YOUR CODE HERE: fit self.model_1
+    ____
+
+    y_fit = pd.DataFrame(
+        # YOUR CODE HERE: make predictions with self.model_1
+        ____,
+        index=X_1.index, columns=y.columns,
+    )
+
+    # YOUR CODE HERE: compute residuals
+    y_resid = ____
+    y_resid = y_resid.stack().squeeze() # wide to long
+
+    # YOUR CODE HERE: fit self.model_2 on residuals
+    self.model_2.fit(____, ____)
+
+    # Save column names for predict method
+    self.y_columns = y.columns
+    # Save data for question checking
+    self.y_fit = y_fit
+    self.y_resid = y_resid
+
+
+# Add method to class
+BoostedHybrid.fit = fit
+
+
+# Check your answer
+q_1.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Lines below will give you a hint or solution code
+q_1.hint()
+q_1.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# -------------------------------------------------------------------------------
+#
+# # 2) Define predict method for boosted hybrid
+#
+# Now define the `predict` method for the `BoostedHybrid` class. Refer back to step 3 from the **Hybrid Forecasting with Residuals** section in the tutorial if you need.
+
+# CELL ********************
+
+def predict(self, X_1, X_2):
+    y_pred = pd.DataFrame(
+        # YOUR CODE HERE: predict with self.model_1
+        ____,
+        index=X_1.index, columns=self.y_columns,
+    )
+    y_pred = y_pred.stack().squeeze()  # wide to long
+
+    # YOUR CODE HERE: add self.model_2 predictions to y_pred
+    y_pred += ____
+
+    return y_pred.unstack()  # long to wide
+
+
+# Add method to class
+BoostedHybrid.predict = predict
+
+
+# Check your answer
+q_2.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Lines below will give you a hint or solution code
+q_2.hint()
+q_2.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# -------------------------------------------------------------------------------
 # 
-# Reshape the data trainX and testX so that we have X shape[0], 1, X shape[1]
+# Now you're ready to use your new `BoostedHybrid` class to create a model for the *Store Sales* data. Run the next cell to set up the data for training.
 
 # CELL ********************
 
-#trainX = _____
-#testX = _____
+# Target series
+y = family_sales.loc[:, 'sales']
 
-step_1.check()
 
-# METADATA ********************
+# X_1: Features for Linear Regression
+dp = DeterministicProcess(index=y.index, order=1)
+X_1 = dp.in_sample()
 
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
 
-# CELL ********************
+# X_2: Features for XGBoost
+X_2 = family_sales.drop('sales', axis=1).stack()  # onpromotion feature
 
-#lines bellow will give you a hint or solution code
-step_1.hint()
-step_1.solution()
+# Label encoding for 'family'
+le = LabelEncoder()  # from sklearn.preprocessing
+X_2 = X_2.reset_index('family')
+X_2['family'] = le.fit_transform(X_2['family'])
+
+# Label encoding for seasonality
+X_2["day"] = X_2.index.day  # values are day of the month
 
 # METADATA ********************
 
@@ -221,19 +250,24 @@ step_1.solution()
 
 # MARKDOWN ********************
 
-# ## Step 2: Create LSTM Model
+# # 3) Train boosted hybrid
 # 
-# Create an LSTM Neural Network with this layers:
-# - sequential 
-# - LSTM with 10 units
-# - Dense layer with 1 output
-# - Compile the model with loss='mean_squared_error' and optimizer='adam'
-
+# Create the hybrid model by initializing a `BoostedHybrid` class with `LinearRegression()` and `XGBRegressor()` instances.
 
 # CELL ********************
 
-#model = ____
-step_2.check()
+# YOUR CODE HERE: Create LinearRegression + XGBRegressor hybrid with BoostedHybrid
+model = ____
+
+# YOUR CODE HERE: Fit and predict
+model.fit(____, ____, ____)
+y_pred = ____
+
+y_pred = y_pred.clip(0.0)
+
+
+# Check your answer
+q_3.check()
 
 # METADATA ********************
 
@@ -244,25 +278,9 @@ step_2.check()
 
 # CELL ********************
 
-#lines bellow will give you an hint or solution
-step_2.hint()
-step_2.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# ### Train the model
-# Train the model with 50 epoch and batch_size 1
-
-# CELL ********************
-
-model.fit(trainX, trainY, epochs=50, batch_size=1)
+# Lines below will give you a hint or solution code
+q_3.hint()
+q_3.solution()
 
 # METADATA ********************
 
@@ -273,19 +291,27 @@ model.fit(trainX, trainY, epochs=50, batch_size=1)
 
 # MARKDOWN ********************
 
-# <a id="44"></a>
-# ### Predictions and Visualising LSTM Model
+# -------------------------------------------------------------------------------
+#
+# Depending on your problem, you might want to use other hybrid combinations than the linear regression + XGBoost hybrid you've created in the previous questions. Run the next cell to try other algorithms from scikit-learn.
 
 # CELL ********************
 
-trainPredict = model.predict(trainX)
-testPredict = model.predict(testX)
-# invert predictions
-trainPredict = scaler.inverse_transform(trainPredict)
-trainY = scaler.inverse_transform([trainY])
-testPredict = scaler.inverse_transform(testPredict)
-testY = scaler.inverse_transform([testY])
+# Model 1 (trend)
+from sklearn.linear_model import ElasticNet, Lasso, Ridge
 
+# Model 2
+from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.neural_network import MLPRegressor
+
+# Boosted Hybrid
+
+# YOUR CODE HERE: Try different combinations of the algorithms above
+model = BoostedHybrid(
+    model_1=Ridge(),
+    model_2=KNeighborsRegressor(),
+)
 
 # METADATA ********************
 
@@ -296,52 +322,32 @@ testY = scaler.inverse_transform([testY])
 
 # MARKDOWN ********************
 
-# # Step 3 Calculate the mean squared error
-# Calculate the mean squared error for train and test
-
-
-# CELL ********************
-
-#trainScore = ______
-#testScore = ______
-step_3.check()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
+# These are just some suggestions. You might discover other algorithms you like in the scikit-learn [User Guide](https://scikit-learn.org/stable/supervised_learning.html).
+#
+# Use the code in this cell to see the predictions your hybrid makes.
 
 # CELL ********************
 
-#The lines bellow will give you a hint or solution code
-step_3.hint()
-step_3.solution()
+y_train, y_valid = y[:"2017-07-01"], y["2017-07-02":]
+X1_train, X1_valid = X_1[: "2017-07-01"], X_1["2017-07-02" :]
+X2_train, X2_valid = X_2.loc[:"2017-07-01"], X_2.loc["2017-07-02":]
 
-# METADATA ********************
+# Some of the algorithms above do best with certain kinds of
+# preprocessing on the features (like standardization), but this is
+# just a demo.
+model.fit(X1_train, X2_train, y_train)
+y_fit = model.predict(X1_train, X2_train).clip(0.0)
+y_pred = model.predict(X1_valid, X2_valid).clip(0.0)
 
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# shifting train
-trainPredictPlot = numpy.empty_like(dataset)
-trainPredictPlot[:, :] = numpy.nan
-trainPredictPlot[time_stemp:len(trainPredict)+time_stemp, :] = trainPredict
-# shifting test predictions for plotting
-testPredictPlot = numpy.empty_like(dataset)
-testPredictPlot[:, :] = numpy.nan
-testPredictPlot[len(trainPredict)+(time_stemp*2)+1:len(dataset)-1, :] = testPredict
-# plot baseline and predictions
-plt.plot(scaler.inverse_transform(dataset), label = "Real Values")
-plt.plot(trainPredictPlot, label = "Train Predictions")
-plt.plot(testPredictPlot, label = "Test Predictions")
-plt.legend()
-plt.show()
+families = y.columns[0:6]
+axs = y.loc(axis=1)[families].plot(
+    subplots=True, sharex=True, figsize=(11, 9), **plot_params, alpha=0.5,
+)
+_ = y_fit.loc(axis=1)[families].plot(subplots=True, sharex=True, color='C0', ax=axs)
+_ = y_pred.loc(axis=1)[families].plot(subplots=True, sharex=True, color='C3', ax=axs)
+for ax, family in zip(axs, families):
+    ax.legend([])
+    ax.set_ylabel(family)
 
 # METADATA ********************
 
@@ -352,6 +358,24 @@ plt.show()
 
 # MARKDOWN ********************
 
-# <a id="6"></a>
-# # Conclusion
-# You have completed the learning on LSTM, congrats ! 
+# # 4) Fit with different learning algorithms
+#
+# Once you're ready to move on, run the next cell for credit on this question.
+
+# CELL ********************
+
+# View the solution (Run this cell to receive credit!)
+q_4.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# # Keep Going #
+#
+# [**Convert any forecasting task**] to a machine learning problem with four ML forecasting strategies.

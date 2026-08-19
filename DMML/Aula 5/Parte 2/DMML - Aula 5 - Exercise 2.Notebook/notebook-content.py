@@ -4,7 +4,8 @@
 
 # META {
 # META   "kernel_info": {
-# META     "name": "synapse_pyspark"
+# META     "name": "jupyter",
+# META     "jupyter_kernel_name": "python3.11"
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
@@ -16,40 +17,21 @@
 # META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
 # META         }
 # META       ]
+# META     },
+# META     "environment": {
+# META       "environmentId": "2b9c63f7-1498-40e2-81b9-a8ccb1b5f193",
+# META       "workspaceId": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
 # META     }
 # META   }
 # META }
 
 # MARKDOWN ********************
 
-# # Introduction to Linear Regression Metrics
+# # Introduction #
 # 
-# Congratulations! You just got some contract work with an Ecommerce company based in New York City that sells clothing online but they also have in-store style and clothing advice sessions. Customers come in to the store, have sessions/meetings with a personal stylist, then they can go home and order either on a mobile app or website for the clothes they want.
+# In this exercise you'll identify an initial set of features in the [*Ames*] dataset to develop using mutual information scores and interaction plots.
 # 
-# The company is trying to decide whether to focus their efforts on their mobile app experience or their website. They've hired you on contract to help them figure it out! Let's get started!
-# 
-# Just follow the steps below to analyze the customer data (it's fake, don't worry I didn't give you real credit card numbers or emails).
-
-# MARKDOWN ********************
-
-# ## Imports
-# ** Import pandas, numpy, matplotlib,and seaborn. Then set %matplotlib inline 
-# (You'll import sklearn as you need it.)**
-
-# CELL ********************
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-%matplotlib inline
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
+# Run this cell to set everything up!
 
 # CELL ********************
 
@@ -59,492 +41,268 @@ import seaborn as sns
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # CELL ********************
 
-# Set up code checking
 # Setup feedback system
 from learntools.core import binder
 binder.bind(globals())
-from learntools.linear_reg.ex2 import *
-print("Setup Complete")
+from learntools.feature_engineering_new.ex2 import *
 
-# METADATA ********************
+import mlflow
+mlflow.autolog(disable=True)
 
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.feature_selection import mutual_info_regression
 
-# MARKDOWN ********************
-
-# ## Get the Data
-# 
-# We'll work with the Ecommerce Customers csv file from the company. It has Customer info, suchas Email, Address, and their color Avatar. Then it also has numerical value columns:
-# 
-# * Avg. Session Length: Average session of in-store style advice sessions.
-# * Time on App: Average time spent on App in minutes
-# * Time on Website: Average time spent on Website in minutes
-# * Length of Membership: How many years the customer has been a member. 
-# 
-# ** Read in the Ecommerce Customers csv file as a DataFrame called customers.**
-
-# CELL ********************
-
-customers = pd.read_csv(
-    "/lakehouse/default/Files/DMML_Aula5/Ecommerce Customers.txt"
+# Set Matplotlib defaults
+plt.style.use("seaborn-v0_8-whitegrid")
+plt.rc("figure", autolayout=True)
+plt.rc(
+    "axes",
+    labelweight="bold",
+    labelsize="large",
+    titleweight="bold",
+    titlesize=14,
+    titlepad=10,
 )
 
+
+# Load data
+df = pd.read_csv("/lakehouse/default/Files/DMML_Aula5/ames.csv")
+
+
+# Utility functions from Tutorial
+def make_mi_scores(X, y):
+    X = X.copy()
+    for colname in X.select_dtypes(["object", "category"]):
+        X[colname], _ = X[colname].factorize()
+    # All discrete features should now have integer dtypes
+    discrete_features = [pd.api.types.is_integer_dtype(t) for t in X.dtypes]
+    mi_scores = mutual_info_regression(X, y, discrete_features=discrete_features, random_state=0)
+    mi_scores = pd.Series(mi_scores, name="MI Scores", index=X.columns)
+    mi_scores = mi_scores.sort_values(ascending=False)
+    return mi_scores
+
+
+def plot_mi_scores(scores):
+    scores = scores.sort_values(ascending=True)
+    width = np.arange(len(scores))
+    ticks = list(scores.index)
+    plt.barh(width, scores)
+    plt.yticks(width, ticks)
+    plt.title("Mutual Information Scores")
+
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
 
-# **Check the head of customers, and check out its info() and describe() methods.**
-
-# CELL ********************
-
-customers.head()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-customers.describe()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-customers.info()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# ## Exploratory Data Analysis
+# -------------------------------------------------------------------------------
 # 
-# **Let's explore the data!**
+# To start, let's review the meaning of mutual information by looking at a few features from the *Ames* dataset.
+
+# CELL ********************
+
+features = ["YearBuilt", "MoSold", "ScreenPorch"]
+sns.relplot(
+    x="value", y="SalePrice", col="variable", data=df.melt(id_vars="SalePrice", value_vars=features), facet_kws=dict(sharex=False),
+);
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# MARKDOWN ********************
+
+# # 1) Understand Mutual Information
 # 
-# For the rest of the exercise we'll only be using the numerical data of the csv file.
-# ___
-# **Use seaborn to create a jointplot to compare the Time on Website and Yearly Amount Spent columns. Does the correlation make sense?**
+# Based on the plots, which feature do you think would have the highest mutual information with `SalePrice`?
 
 # CELL ********************
 
-sns.set_palette("GnBu_d")
-sns.set_style('whitegrid')
+# View the solution (Run this cell )
+q_1.check()
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# More time on site, more money spent.
-sns.jointplot(x='Time on Website',y='Yearly Amount Spent',data=customers)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
 
-# We Do the same but with the Time on App column instead. 
-
-# CELL ********************
-
-sns.jointplot(x='Time on App',y='Yearly Amount Spent',data=customers)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# We Use jointplot to create a 2D hex bin plot comparing Time on App and Length of Membership.
-
-# CELL ********************
-
-sns.jointplot(x='Time on App',y='Length of Membership',kind='hex',data=customers)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# Let's explore these types of relationships across the entire data set. 
-
-# CELL ********************
-
-sns.pairplot(customers)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# ## Step 1: Analyze the Data
+# -------------------------------------------------------------------------------
 # 
-# Based off this plot what looks to be the most correlated feature with Yearly Amount Spent?
-
-# CELL ********************
-
-#run the line bellow to see the solution
-step_1.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# We Create a linear model plot (using seaborn's lmplot) of  Yearly Amount Spent vs. Length of Membership. 
-
-# CELL ********************
-
-sns.lmplot(x='Length of Membership',y='Yearly Amount Spent',data=customers)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# ## Training and Testing Data
+# The *Ames* dataset has seventy-eight features -- a lot to work with all at once! Fortunately, you can identify the features with the most potential.
 # 
-# Now that we've explored the data a bit, let's go ahead and split the data into training and testing sets.
-# ** Set a variable X equal to the numerical features of the customers and a variable y equal to the "Yearly Amount Spent" column. **
+# Use the `make_mi_scores` function (introduced in the tutorial) to compute mutual information scores for the *Ames* features:
+
 
 # CELL ********************
 
-y = customers['Yearly Amount Spent']
+X = df.copy()
+y = X.pop('SalePrice')
+
+mi_scores = make_mi_scores(X, y)
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-X = customers[['Avg. Session Length', 'Time on App','Time on Website', 'Length of Membership']]
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
 
-# ** Use model_selection.train_test_split from sklearn to split the data into training and testing sets. Set test_size=0.3 and random_state=101**
+# Now examine the scores using the functions in this cell. Look especially at top and bottom ranks.
 
 # CELL ********************
 
-from sklearn.model_selection import train_test_split
+print(mi_scores.head(20))
+# print(mi_scores.tail(20))  # uncomment to see bottom 20
+
+plt.figure(dpi=100, figsize=(8, 5))
+plot_mi_scores(mi_scores.head(20))
+# plot_mi_scores(mi_scores.tail(20))  # uncomment to see bottom 20
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
 
-# ## Step 1: Training the Model
-# 
-# Now its time to train our model on our training data!
-# 
-# Create an instance of a LinearRegression() model named model and fit the training data
-
+# # 2) Examine MI Scores
+#
+# Do the scores seem reasonable? Do the high scoring features represent things you'd think most people would value in a home? Do you notice any themes in what they describe?
 
 # CELL ********************
 
-from sklearn.linear_model import LinearRegression
-
-model = LinearRegression()
-model.fit(X_train,y_train)
-
-step_2.check()
+# View the solution (Run this cell !)
+q_2.check()
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-from sklearn.linear_model import LinearRegression
-
-model = ____
-
-step_2.check()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# Lines below will give you a hint or solution code
-step_2.hint()
-step_2.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
 
-# Let's print out the coefficients of the model
+# -------------------------------------------------------------------------------
+# 
+# In this step you'll investigate possible interaction effects for the `BldgType` feature. This feature describes the broad structure of the dwelling in five categories:
+# 
+# > Bldg Type (Nominal): Type of dwelling
+# >
+# >       1Fam	Single-family Detached
+# >       2FmCon	Two-family Conversion; originally built as one-family dwelling
+# >       Duplx	Duplex
+# >       TwnhsE	Townhouse End Unit
+# >       TwnhsI	Townhouse Inside Unit
+#
+# The `BldgType` feature didn't get a very high MI score. A plot confirms that the categories in `BldgType` don't do a good job of distinguishing values in `SalePrice` (the distributions look fairly similar, in other words):
 
 # CELL ********************
 
-# The coefficients
-print('Coefficients: \n', model.coef_)
+sns.catplot(x="BldgType", y="SalePrice", data=df, kind="boxen");
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
 
-# ## Predicting Test Data
-# Now that we have fit our model, let's evaluate its performance by predicting off the test values!
+# Still, the type of a dwelling seems like it should be important information. Investigate whether `BldgType` produces a significant interaction with either of the following:
 # 
-# We are going to use model.predict() to predict off the X_test set of the data.
+# ```
+# GrLivArea  # Above ground living area
+# MoSold     # Month sold
+# ```
+# 
+# Run the following cell twice, the first time with `feature = "GrLivArea"` and the next time with `feature="MoSold"`:
 
 # CELL ********************
 
-predictions = model.predict( X_test)
+# YOUR CODE HERE:
+feature = "GrLivArea"
+
+sns.lmplot(
+    x=feature, y="SalePrice", hue="BldgType", col="BldgType",
+    data=df, scatter_kws={"edgecolor": 'w'}, col_wrap=3, height=4,
+);
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
 
-# We Create a scatterplot of the real test values versus the predicted values. 
+# The trend lines being significantly different from one category to the next indicates an interaction effect.
+
+# MARKDOWN ********************
+
+# # 3) Discover Interactions
+# 
+# From the plots, does `BldgType` seem to exhibit an interaction effect with either `GrLivArea` or `MoSold`?
 
 # CELL ********************
 
-plt.scatter(y_test,predictions)
-plt.xlabel('Y Test')
-plt.ylabel('Predicted Y')
+# View the solution (Run this cell )
+q_3.check()
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
 
-# ## Step 2: Evaluating the Model
+# # A First Set of Development Features #
 # 
-# Let's evaluate our model performance by calculating the residual sum of squares and the explained variance score (R^2).
-# 
-# ** Calculate the Mean Absolute Error, Mean Squared Error, and the Root Mean Squared Error.**
+# Let's take a moment to make a list of features we might focus on. In the exercise in Lesson 3, you'll start to build up a more informative feature set through combinations of the original features you identified as having high potential.
+#
+# You found that the ten features with the highest MI scores were:
 
 # CELL ********************
 
-# calculate these metrics by hand!
-from sklearn import metrics
-
-mae = metrics.mean_absolute_error(y_test, predictions)
-mse = metrics.mean_squared_error(y_test, predictions)
-rmse= np.sqrt(metrics.mean_squared_error(y_test, predictions))
-
-step_3.check()
-
+mi_scores.head(10)
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-mae = ____
-mse = ____
-rmse= ____
-
-step_3.check()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# Lines below will give you a hint or solution code
-step_3.hint()
-step_3.solution()
-
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
 
-# ## Residuals
+# Do you recognize the themes here? Location, size, and quality. You needn't restrict development to only these top features, but you do now have a good place to start. Combining these top features with other related features, especially those you've identified as creating interactions, is a good strategy for coming up with a highly informative set of features to train your model on.
+#
+# # Keep Going #
 # 
-# You should have gotten a very good model with a good fit. Let's quickly explore the residuals to make sure everything was okay with our data. 
-# 
-# Here we Plot a histogram of the residuals and make sure it looks normally distributed. Use either seaborn distplot, or just plt.hist().
-
-# CELL ********************
-
-sns.histplot(y_test - predictions, bins=50, kde=True)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# ## Conclusion
-# We still want to figure out the answer to the original question, do we focus our efforst on mobile app or website development? Or maybe that doesn't even really matter, and Membership Time is what is really important.  Let's see if we can interpret the coefficients at all to get an idea.
-# 
-
-
-# CELL ********************
-
-coeffecients = pd.DataFrame(model.coef_,X.columns)
-coeffecients.columns = ['Coeffecient']
-coeffecients
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# ## Step 4: Interprete coeficients
-# 
-# How can you interpret these coefficients? **
-
-# CELL ********************
-
-#run the line bellow to see the solution
-step_4.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# ## Step 5: Insight analyze
-# 
-# Do you think the company should focus more on their mobile app or on their website?**
-
-# CELL ********************
-
-#run the line bellow to see the solution
-step_5.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# ## Great Job!
-# 
-# Congrats on your contract work! The company loved the insights! Let's move on.

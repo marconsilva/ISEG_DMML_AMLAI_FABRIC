@@ -5,37 +5,26 @@
 # META {
 # META   "kernel_info": {
 # META     "name": "synapse_pyspark"
-# META   },
-# META   "dependencies": {
-# META     "lakehouse": {
-# META       "default_lakehouse": "81cbac54-cfa3-495b-ad48-b44a92bb72fb",
-# META       "default_lakehouse_name": "DataScienceLearnLakehouse",
-# META       "default_lakehouse_workspace_id": "a677a3bf-5fb2-455e-abaa-9e850bde3e1a",
-# META       "known_lakehouses": [
-# META         {
-# META           "id": "81cbac54-cfa3-495b-ad48-b44a92bb72fb"
-# META         }
-# META       ]
-# META     },
-# META     "environment": {
-# META       "environmentId": "8d4e4ec0-4003-41ac-8712-a74940892402",
-# META       "workspaceId": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
-# META     }
 # META   }
 # META }
 
 # MARKDOWN ********************
 
-# # Introduction #
+# # Natural Language Classification
 # 
-# In this exercise, you'll work on building some intuition around feature extraction. First, we'll walk through the example we did in the tutorial again, but this time, with a kernel you choose yourself. We've mostly been working with images in this course, but what's behind all of the operations we're learning about is mathematics. So, we'll also take a look at how these feature maps can be represented instead as arrays of numbers and what effect convolution with a kernel will have on them.
+# You did such a great job for DeFalco's restaurant in the previous exercise that the chef has hired you for a new project.
 # 
-# Run the cell below to get started!
+# The restaurant's menu includes an email address where visitors can give feedback about their food.
+#
+# The manager wants you to create a tool that automatically sends him all the negative reviews so he can fix them, while automatically sending all the positive reviews to the owner, so the manager can ask for a raise.
+#
+# You will first build a model to distinguish positive reviews from negative reviews using Yelp reviews because these reviews include a rating with each review. Your data consists of the text body of each review along with the star rating. Ratings with 1-2 stars count as "negative", and ratings with 4-5 stars are "positive". Ratings with 3 stars are "neutral" and have been dropped from the data.
+#
+# Let's get started. First, run the next code cell.
 
 # CELL ********************
 
-%pip install --upgrade pip
-%pip install tensorflow scikit-image sympy
+%pip install spacy
 
 # METADATA ********************
 
@@ -46,37 +35,13 @@
 
 # CELL ********************
 
-import os
+import pandas as pd
 
-# Disable GPU and suppress CUDA warnings
-os.environ['CUDA_VISIBLE_DEVICES'] = ''
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=info, 2=warning, 3=error
-DATA_ROOT = os.environ.get('AMLAI_DATA_ROOT', '/lakehouse/default/Files')
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# Setup feedback system
+# Set up code checking
 from learntools.core import binder
 binder.bind(globals())
-from learntools.computer_vision.ex2 import *
-
-import numpy as np
-import tensorflow as tf
-import matplotlib.pyplot as plt
-
-plt.rc('figure', autolayout=True)
-plt.rc('axes', labelweight='bold', labelsize='large',
-       titleweight='bold', titlesize=18, titlepad=10)
-plt.rc('image', cmap='magma')
-
-tf.config.run_functions_eagerly(True)
+from learntools.nlp.ex2 import *
+print("\nSetup complete")
 
 # METADATA ********************
 
@@ -87,24 +52,49 @@ tf.config.run_functions_eagerly(True)
 
 # MARKDOWN ********************
 
-# # Apply Transformations #
-# 
-# The next few exercises walk through feature extraction just like the example in the tutorial. Run the following cell to load an image we'll use for the next few exercises.
+# # Step 1: Evaluate the Approach
+#
+# Is there anything about this approach that concerns you? After you've thought about it, run the function below to see one point of view.
 
 # CELL ********************
 
-image_path = os.path.join(
-    DATA_ROOT, 'AMLAI_Aula5', 'computer-vision-resources', 'car_illus.jpg'
+# Check your answer (Run this code cell to receive credit!)
+step_1.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# # Step 2: Review Data and Create the model
+# 
+# Moving forward with your plan, you'll need to load the data. Here's some basic code to load data and split it into a training and validation set. Run this code.
+
+# CELL ********************
+
+def load_data(csv_file, split=0.9):
+    data = pd.read_csv(csv_file)
+
+    # Shuffle data
+    train_data = data.sample(frac=1, random_state=7)
+
+    texts = train_data.text.values
+    labels = [{"POSITIVE": bool(y), "NEGATIVE": not bool(y)}
+              for y in train_data.sentiment.values]
+    split = int(len(train_data) * split)
+
+    train_labels = [{"cats": labels} for labels in labels[:split]]
+    val_labels = [{"cats": labels} for labels in labels[split:]]
+
+    return texts[:split], train_labels, texts[split:], val_labels
+
+train_texts, train_labels, val_texts, val_labels = load_data(
+    '/lakehouse/default/Files/AMLAI_Aula5/yelp_ratings.csv'
 )
-image = tf.io.read_file(image_path)
-image = tf.io.decode_jpeg(image, channels=1)
-image = tf.image.resize(image, size=[400, 400])
-
-img = tf.squeeze(image).numpy()
-plt.figure(figsize=(6, 6))
-plt.imshow(img, cmap='gray')
-plt.axis('off')
-plt.show();
 
 # METADATA ********************
 
@@ -115,22 +105,17 @@ plt.show();
 
 # MARKDOWN ********************
 
-# You can run this cell to see some standard kernels used in image processing.
+# You will use this training data to build a model. The code to build the model is the same as what you saw in the tutorial. So that is copied below for you.
+#
+# First, run the cell below to look at a couple elements from your training data.
 
 # CELL ********************
 
-import learntools.computer_vision.visiontools as visiontools
-from learntools.computer_vision.visiontools import edge, bottom_sobel, emboss, sharpen
+print('Texts from training data\n------')
+print(train_texts[:2])
+print('\nLabels from training data\n------')
+print(train_labels[:2])
 
-kernels = [edge, bottom_sobel, emboss, sharpen]
-names = ["Edge Detect", "Bottom Sobel", "Emboss", "Sharpen"]
-
-plt.figure(figsize=(12, 12))
-for i, (kernel, name) in enumerate(zip(kernels, names)):
-    plt.subplot(1, 4, i+1)
-    visiontools.show_kernel(kernel)
-    plt.title(name)
-plt.tight_layout()
 
 # METADATA ********************
 
@@ -141,23 +126,26 @@ plt.tight_layout()
 
 # MARKDOWN ********************
 
-# # 1) Define Kernel #
+# But because your data is different, there are **two lines in the modeling code cell that you'll need to change.** Can you figure out what they are?
 # 
-# Use the next code cell to define a kernel. You have your choice of what kind of kernel to apply. One thing to keep in mind is that the *sum* of the numbers in the kernel determines how bright the final image is. Generally, you should try to keep the sum of the numbers between 0 and 1 (though that's not required for a correct answer).
-# 
-# In general, a kernel can have any number of rows and columns. For this exercise, let's use a $3 \times 3$ kernel, which often gives the best results. Define a kernel with `tf.constant`.
+# If you're not sure, take a second look at the data, and pay particular attention to the labels that should be fed to the text classifier.
 
 # CELL ********************
 
-# YOUR CODE HERE: Define a kernel with 3 rows and 3 columns.
-kernel = tf.constant([
-    #____,
-])
-# Uncomment to view kernel
-# visiontools.show_kernel(kernel)
+import spacy
+
+# Create an empty model
+nlp = spacy.blank('en')
+
+# Add the TextCategorizer to the empty model
+textcat = nlp.add_pipe('textcat')
+
+# Add labels to text classifier
+textcat.add_label("POSITIVE")
+textcat.add_label("NEGATIVE")
 
 # Check your answer
-q_1.check()
+step_2.check()
 
 # METADATA ********************
 
@@ -169,8 +157,8 @@ q_1.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-q_1.hint()
-q_1.solution()
+step_2.hint()
+step_2.solution()
 
 # METADATA ********************
 
@@ -181,36 +169,36 @@ q_1.solution()
 
 # MARKDOWN ********************
 
-# Now we'll do the first step of feature extraction, the filtering step. First run this cell to do some reformatting for TensorFlow.
+# # Step 3: Train Function
+#
+# Implement a function `train` that updates a model with training data. Most of this is general data munging, which we've filled in for you.
+#
+# Just add the one line of code necessary to update your model.
 
 # CELL ********************
 
-# Reformat for batch compatibility.
-image = tf.image.convert_image_dtype(image, dtype=tf.float32)
-image = tf.expand_dims(image, axis=0)
-kernel = tf.reshape(kernel, [*kernel.shape, 1, 1])
-kernel = tf.cast(kernel, dtype=tf.float32)
+import random
+from spacy.util import minibatch
+from spacy.training.example import Example
 
-# METADATA ********************
+def train(model, train_data, optimizer, batch_size=8):
+    losses = {}
+    random.seed(1)
+    random.shuffle(train_data)
 
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
+    # train_data is a list of tuples [(text0, label0), (text1, label1), ...]
+    for batch in minibatch(train_data, size=batch_size):
+        # Split batch into text and labels
+        for text, labels in batch:
+            doc = nlp.make_doc(text)
+            example = Example.from_dict(doc, labels)
+            # TODO: Update model with texts and labels
+            ____
 
-# MARKDOWN ********************
-
-# # 2) Apply Convolution #
-# 
-# Now we'll apply the kernel to the image by a convolution. The *layer* in Keras that does this is `layers.Conv2D`. What is the *backend function* in TensorFlow that performs the same operation?
-
-# CELL ********************
-
-# YOUR CODE HERE: Give the TensorFlow convolution function (without arguments)
-conv_fn = ____
+    return losses
 
 # Check your answer
-q_2.check()
+step_3.check()
 
 # METADATA ********************
 
@@ -222,8 +210,27 @@ q_2.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-q_2.hint()
-q_2.solution()
+step_3.hint()
+step_3.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Fix seed for reproducibility
+spacy.util.fix_random_seed(1)
+random.seed(1)
+
+# This may take a while to run!
+optimizer = nlp.begin_training()
+train_data = list(zip(train_texts, train_labels))
+losses = train(nlp, train_data, optimizer)
+print(losses['textcat'])
 
 # METADATA ********************
 
@@ -234,23 +241,13 @@ q_2.solution()
 
 # MARKDOWN ********************
 
-# Once you've got the correct answer, run this next cell to execute the convolution and see the result!
+# We can try this slightly trained model on some example text and look at the probabilities assigned to each label.
 
 # CELL ********************
 
-image_filter = conv_fn(
-    input=image,
-    filters=kernel,
-    strides=1, # or (1, 1)
-    padding='SAME',
-)
-
-plt.imshow(
-    # Reformat for plotting
-    tf.squeeze(image_filter)
-)
-plt.axis('off')
-plt.show();
+text = "This tea cup was full of holes. Do not recommend."
+doc = nlp(text)
+print(doc.cats)
 
 # METADATA ********************
 
@@ -261,19 +258,31 @@ plt.show();
 
 # MARKDOWN ********************
 
-# Can you see how the kernel you chose relates to the feature map it produced?
+# These probabilities look reasonable. Now you should turn them into an actual prediction.
 # 
-# # 3) Apply ReLU #
+# # Step 4: Making Predictions
 # 
-# Now detect the feature with the ReLU function. In Keras, you'll usually use this as the activation function in a `Conv2D` layer. What is the *backend function* in TensorFlow that does the same thing?
+# Implement a function `predict` that predicts the sentiment of text examples.
+# - First, tokenize the texts using `nlp.tokenizer()`.
+# - Then, pass those docs to the TextCategorizer which you can get from `nlp.get_pipe()`.
+# - Use the `textcat.predict()` method to get scores for each document, then choose the class with the highest score (probability) as the predicted class.
 
 # CELL ********************
 
-# YOUR CODE HERE: Give the TensorFlow ReLU function (without arguments)
-relu_fn = ____
+def predict(nlp, texts):
+    # Use the model's tokenizer to tokenize each input text
+    docs = ____
+
+    # Use textcat to get the scores for each doc
+    ____
+
+    # From the scores, find the class with the highest score/probability
+    predicted_class = ____
+
+    return predicted_class
 
 # Check your answer
-q_3.check()
+step_4.check()
 
 # METADATA ********************
 
@@ -285,8 +294,8 @@ q_3.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-q_3.hint()
-q_3.solution()
+step_4.hint()
+step_4.solution()
 
 # METADATA ********************
 
@@ -294,24 +303,14 @@ q_3.solution()
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-
-# MARKDOWN ********************
-
-# Once you've got the solution, run this cell to detect the feature with ReLU and see the result!
-# 
-# The image you see below is the feature map produced by the kernel you chose. If you like, experiment with some of the other suggested kernels above, or, try to invent one that will extract a certain kind of feature.
-
 
 # CELL ********************
 
-image_detect = relu_fn(image_filter)
+texts = val_texts[34:38]
+predictions = predict(nlp, texts)
 
-plt.imshow(
-    # Reformat for plotting
-    tf.squeeze(image_detect)
-)
-plt.axis('off')
-plt.show();
+for p, t in zip(predictions, texts):
+    print(f"{textcat.labels[p]}: {t} \n")
 
 # METADATA ********************
 
@@ -322,41 +321,42 @@ plt.show();
 
 # MARKDOWN ********************
 
-# In the tutorial, our discussion of kernels and feature maps was mainly visual. We saw the effect of `Conv2D` and `ReLU` by observing how they transformed some example images.
+# It looks like your model is working well after going through the data just once. However you need to calculate some metric for the model's performance on the hold-out validation data.
 # 
-# But the operations in a convolutional network (like in all neural networks) are usually defined through mathematical functions, through a computation on numbers. In the next exercise, we'll take a moment to explore this point of view.
+# # Step 5: Evaluate The Model
 # 
-# Let's start by defining a simple array to act as an image, and another array to act as the kernel. Run the following cell to see these arrays.
+# Implement a function that evaluates a `TextCategorizer` model. This function `evaluate` takes a model along with texts and labels. It returns the accuracy of the model, which is the number of correct predictions divided by all predictions.
+#
+# First, use the `predict` method you wrote earlier to get the predicted class for each text in `texts`. Then, find where the predicted labels match the true "gold-standard" labels and calculate the accuracy.
 
 # CELL ********************
 
-# Sympy is a python library for symbolic mathematics. It has a nice
-# pretty printer for matrices, which is all we'll use it for.
-import sympy
-sympy.init_printing()
-from IPython.display import display
+def evaluate(model, texts, labels):
+    """ Returns the accuracy of a TextCategorizer model.
 
-image = np.array([
-    [0, 1, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0],
-    [0, 1, 0, 1, 1, 1],
-    [0, 1, 0, 0, 0, 0],
-])
+        Arguments
+        ---------
+        model: ScaPy model with a TextCategorizer
+        texts: Text samples, from load_data function
+        labels: True labels, from load_data function
 
-kernel = np.array([
-    [1, -1],
-    [1, -1],
-])
+    """
+    # Get predictions from textcat model (using your predict method)
+    predicted_class = ____
 
-display(sympy.Matrix(image))
-display(sympy.Matrix(kernel))
-# Reformat for Tensorflow
-image = tf.cast(image, dtype=tf.float32)
-image = tf.reshape(image, [1, *image.shape, 1])
-kernel = tf.reshape(kernel, [*kernel.shape, 1, 1])
-kernel = tf.cast(kernel, dtype=tf.float32)
+    # From labels, get the true class as a list of integers (POSITIVE -> 1, NEGATIVE -> 0)
+    true_class = ____
+
+    # A boolean or int array indicating correct predictions
+    correct_predictions = ____
+
+    # The accuracy, number of correct predictions divided by all predictions
+    accuracy = ____
+
+    return accuracy
+
+# Check your answer
+step_5.check()
 
 # METADATA ********************
 
@@ -364,18 +364,12 @@ kernel = tf.cast(kernel, dtype=tf.float32)
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-
-# MARKDOWN ********************
-
-# # 4) Observe Convolution on a Numerical Matrix #
-# 
-# 
-# What do you see? The image is simply a long vertical line on the left and a short horizontal line on the lower right. What about the kernel? What effect do you think it will have on this image? After you've thought about it, run the next cell for the answer.
 
 # CELL ********************
 
-# View the solution (Run this code cell to receive credit!)
-q_4.check()
+# Lines below will give you a hint or solution code
+step_5.hint()
+step_5.solution()
 
 # METADATA ********************
 
@@ -383,25 +377,11 @@ q_4.check()
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-
-# MARKDOWN ********************
-
-# Now let's try it out. Run the next cell to apply convolution and ReLU to the image and display the result.
 
 # CELL ********************
 
-image_filter = tf.nn.conv2d(
-    input=image,
-    filters=kernel,
-    strides=1,
-    padding='VALID',
-)
-image_detect = tf.nn.relu(image_filter)
-
-# The first matrix is the image after convolution, and the second is
-# the image after ReLU.
-display(sympy.Matrix(tf.squeeze(image_filter).numpy()))
-display(sympy.Matrix(tf.squeeze(image_detect).numpy()))
+accuracy = evaluate(nlp, val_texts, val_labels)
+print(f"Accuracy: {accuracy:.4f}")
 
 # METADATA ********************
 
@@ -412,12 +392,46 @@ display(sympy.Matrix(tf.squeeze(image_detect).numpy()))
 
 # MARKDOWN ********************
 
-# Is the result what you expected?
+# With the functions implemented, you can train and evaluate in a loop.
+
+# CELL ********************
+
+# This may take a while to run!
+n_iters = 5
+for i in range(n_iters):
+    losses = train(nlp, train_data, optimizer)
+    accuracy = evaluate(nlp, val_texts, val_labels)
+    print(f"Loss: {losses['textcat']:.3f} \t Accuracy: {accuracy:.3f}")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# # Step 6: Keep Improving
 # 
-# # Conclusion #
+# You've built the necessary components to train a text classifier with spaCy. What could you do further to optimize the model?
 # 
-# In this lesson, you learned about the first two operations a convolutional classifier uses for feature extraction: **filtering** an image with a **convolution** and **detecting** the feature with the **rectified linear unit**. 
+# Run the next line to check your answer.
+
+# CELL ********************
+
+# Check your answer (Run this code cell to receive credit!)
+step_6.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Keep Going
 # 
-# # Keep Going #
-# 
-# Move on to [**Tutorial 3**] to learn the final operation: **condensing** the feature map with **maximum pooling**!
+# The next step is a big one. See how you can **[represent tokens as vectors that describe their meaning]**, and plug those into your machine learning models.

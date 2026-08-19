@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import importlib.util
 import json
 import re
 import sys
+import uuid
 from collections import Counter
 from pathlib import Path
 
@@ -71,6 +73,9 @@ DATA_RE = re.compile(
     )["']""",
     re.IGNORECASE | re.VERBOSE,
 )
+NOTEBOOK_MARKER_RE = re.compile(r"^# (CELL|MARKDOWN|METADATA) \*+\s*$")
+NON_PYTHON_CELL_RE = re.compile(r"^%%(?:sql|pyspark|spark|scala|r)\b", re.I)
+LINE_MAGIC_RE = re.compile(r"^\s*[%!][A-Za-z_]")
 
 
 def read_notebooks() -> list[tuple[Path, str]]:
@@ -104,6 +109,78 @@ def collect_data_references(notebooks: list[tuple[Path, str]]) -> Counter[str]:
     for _, text in notebooks:
         references.update(match.group(1) for match in DATA_RE.finditer(text))
     return references
+
+
+def validate_notebook_metadata(
+    notebooks: list[tuple[Path, str]],
+) -> list[str]:
+    """Return invalid embedded Fabric metadata blocks."""
+    invalid = []
+    for path, text in notebooks:
+        lines = text.splitlines()
+        line_index = 0
+        while line_index < len(lines):
+            if not lines[line_index].startswith("# META "):
+                line_index += 1
+                continue
+
+            start_line = line_index + 1
+            block = []
+            while (
+                line_index < len(lines)
+                and lines[line_index].startswith("# META ")
+            ):
+                block.append(lines[line_index][7:])
+                line_index += 1
+            try:
+                json.loads("\n".join(block))
+            except json.JSONDecodeError as error:
+                invalid.append(
+                    f"{path.relative_to(ROOT)}:{start_line}: {error.msg}"
+                )
+    return invalid
+
+
+def validate_notebook_syntax(
+    notebooks: list[tuple[Path, str]],
+) -> list[str]:
+    """Parse Python cells while respecting Fabric cell and magic syntax."""
+    invalid = []
+    for path, text in notebooks:
+        lines = text.splitlines()
+        line_index = 0
+        while line_index < len(lines):
+            marker = NOTEBOOK_MARKER_RE.match(lines[line_index])
+            if not marker or marker.group(1) != "CELL":
+                line_index += 1
+                continue
+
+            start_line = line_index + 2
+            line_index += 1
+            cell = []
+            while (
+                line_index < len(lines)
+                and not NOTEBOOK_MARKER_RE.match(lines[line_index])
+            ):
+                cell.append(lines[line_index])
+                line_index += 1
+
+            first_line = next(
+                (line.strip() for line in cell if line.strip()), ""
+            )
+            if NON_PYTHON_CELL_RE.match(first_line):
+                continue
+            source = "\n".join(
+                "" if LINE_MAGIC_RE.match(line) else line for line in cell
+            )
+            try:
+                ast.parse(source, filename=str(path))
+            except SyntaxError as error:
+                error_line = start_line + (error.lineno or 1) - 1
+                invalid.append(
+                    f"{path.relative_to(ROOT)}:{error_line}: {error.msg}"
+                )
+    return invalid
 
 
 def declared_local_packages() -> set[str]:
@@ -188,14 +265,62 @@ def main() -> int:
     if missing_platform:
         errors.append(f"{len(missing_platform)} notebooks have no .platform metadata")
 
+    platform_files = sorted(ROOT.glob("**/.platform"))
     invalid_platform = []
-    for path in ROOT.glob("**/.platform"):
+    missing_logical_ids = []
+    invalid_logical_ids = []
+    logical_ids: dict[str, list[str]] = {}
+    for path in platform_files:
         try:
-            json.loads(path.read_text(encoding="utf-8-sig"))
+            data = json.loads(path.read_text(encoding="utf-8-sig"))
         except (json.JSONDecodeError, UnicodeDecodeError):
             invalid_platform.append(str(path.relative_to(ROOT)))
+            continue
+
+        relative_path = str(path.relative_to(ROOT))
+        logical_id = data.get("config", {}).get("logicalId")
+        if not logical_id:
+            missing_logical_ids.append(relative_path)
+            continue
+        try:
+            uuid.UUID(logical_id)
+        except (ValueError, AttributeError):
+            invalid_logical_ids.append(f"{relative_path}: {logical_id!r}")
+            continue
+        logical_ids.setdefault(logical_id, []).append(relative_path)
     if invalid_platform:
         errors.append(f"{len(invalid_platform)} .platform files are invalid JSON")
+    if missing_logical_ids:
+        errors.append(
+            f"{len(missing_logical_ids)} .platform files have no logicalId"
+        )
+    if invalid_logical_ids:
+        errors.append(
+            f"{len(invalid_logical_ids)} .platform files have invalid logicalIds"
+        )
+    duplicate_logical_ids = {
+        logical_id: paths
+        for logical_id, paths in logical_ids.items()
+        if len(paths) > 1
+    }
+    if duplicate_logical_ids:
+        errors.append(
+            f"{len(duplicate_logical_ids)} logicalId values are duplicated"
+        )
+
+    invalid_notebook_metadata = validate_notebook_metadata(notebooks)
+    if invalid_notebook_metadata:
+        errors.append(
+            f"{len(invalid_notebook_metadata)} notebook metadata blocks "
+            "are invalid JSON"
+        )
+
+    invalid_notebook_syntax = validate_notebook_syntax(notebooks)
+    if invalid_notebook_syntax:
+        errors.append(
+            f"{len(invalid_notebook_syntax)} notebook Python cells "
+            "have invalid syntax"
+        )
 
     environment_dirs = sorted((ROOT / "Envs").glob("*.Environment"))
     missing_environment_metadata = [
@@ -286,7 +411,11 @@ def main() -> int:
 
     result = {
         "notebooks": len(notebooks),
-        "platform_files": sum(1 for _ in ROOT.glob("**/.platform")),
+        "platform_files": len(platform_files),
+        "logical_ids": len(logical_ids),
+        "duplicate_logical_ids": duplicate_logical_ids,
+        "invalid_notebook_metadata": invalid_notebook_metadata,
+        "invalid_notebook_syntax": invalid_notebook_syntax,
         "fabric_environments": len(environment_dirs),
         "runtime_versions": dict(sorted(runtime_versions.items())),
         "environment_logical_ids": dict(sorted(env_logical_ids.items())),

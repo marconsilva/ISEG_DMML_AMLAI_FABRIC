@@ -5,96 +5,74 @@
 # META {
 # META   "kernel_info": {
 # META     "name": "synapse_pyspark"
+# META   },
+# META   "dependencies": {
+# META     "lakehouse": {
+# META       "default_lakehouse": "a5591839-f387-4a67-a52e-dac9b3ea21b0",
+# META       "default_lakehouse_name": "DataScienceLearnLakehouse",
+# META       "default_lakehouse_workspace_id": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
+# META     },
+# META     "environment": {
+# META       "environmentId": "8d4e4ec0-4003-41ac-8712-a74940892402",
+# META       "workspaceId": "03f3982f-785f-4a2f-8ec0-4be54060ee7b"
+# META     }
 # META   }
 # META }
 
 # MARKDOWN ********************
 
-# # Natural Language Classification
 # 
-# You did such a great job for DeFalco's restaurant in the previous exercise that the chef has hired you for a new project.
-# 
-# The restaurant's menu includes an email address where visitors can give feedback about their food. 
-# 
-# The manager wants you to create a tool that automatically sends him all the negative reviews so he can fix them, while automatically sending all the positive reviews to the owner, so the manager can ask for a raise. 
-# 
-# You will first build a model to distinguish positive reviews from negative reviews using Yelp reviews because these reviews include a rating with each review. Your data consists of the text body of each review along with the star rating. Ratings with 1-2 stars count as "negative", and ratings with 4-5 stars are "positive". Ratings with 3 stars are "neutral" and have been dropped from the data.
-# 
-# Let's get started. First, run the next code cell.
+# # Introduction #
+
+# MARKDOWN ********************
+
+# Run this cell to set everything up!
 
 # CELL ********************
 
-%pip install spacy
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-import pandas as pd
-
-# Set up code checking
+# Setup feedback system
 from learntools.core import binder
 binder.bind(globals())
-from learntools.nlp.ex2 import *
-print("\nSetup complete")
+from learntools.time_series.ex2 import *
 
-# METADATA ********************
+import mlflow
+mlflow.autolog(disable=True)
 
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
+# Setup notebook
+from pathlib import Path
+from learntools.time_series.style import *  # plot style settings
 
-# MARKDOWN ********************
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from sklearn.linear_model import LinearRegression
 
-# # Step 1: Evaluate the Approach
-# 
-# Is there anything about this approach that concerns you? After you've thought about it, run the function below to see one point of view.
+data_dir = Path('/lakehouse/default/Files/AMLAI_Aula6/')
+comp_dir = Path('/lakehouse/default/Files/AMLAI_Aula6/store-sales-time-series-forecasting')
 
-# CELL ********************
+retail_sales = pd.read_csv(
+    data_dir / "us-retail-sales.csv",
+    parse_dates=['Month'],
+    index_col='Month',
+).to_period('D')
+food_sales = retail_sales.loc[:, 'FoodAndBeverage']
+auto_sales = retail_sales.loc[:, 'Automobiles']
 
-# Check your answer (Run this code cell to receive credit!)
-step_1.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# # Step 2: Review Data and Create the model
-# 
-# Moving forward with your plan, you'll need to load the data. Here's some basic code to load data and split it into a training and validation set. Run this code.
-
-# CELL ********************
-
-def load_data(csv_file, split=0.9):
-    data = pd.read_csv(csv_file)
-    
-    # Shuffle data
-    train_data = data.sample(frac=1, random_state=7)
-    
-    texts = train_data.text.values
-    labels = [{"POSITIVE": bool(y), "NEGATIVE": not bool(y)}
-              for y in train_data.sentiment.values]
-    split = int(len(train_data) * split)
-    
-    train_labels = [{"cats": labels} for labels in labels[:split]]
-    val_labels = [{"cats": labels} for labels in labels[split:]]
-    
-    return texts[:split], train_labels, texts[split:], val_labels
-
-train_texts, train_labels, val_texts, val_labels = load_data(
-    '/lakehouse/default/Files/AMLAI_Aula6/yelp_ratings.csv'
+dtype = {
+    'store_nbr': 'category',
+    'family': 'category',
+    'sales': 'float32',
+    'onpromotion': 'uint64',
+}
+store_sales = pd.read_csv(
+    comp_dir / 'train.csv',
+    dtype=dtype,
+    parse_dates=['date'],
 )
+store_sales = store_sales.set_index('date').to_period('D')
+store_sales = store_sales.set_index(['store_nbr', 'family'], append=True)
+average_sales = store_sales.groupby('date').mean()['sales']
 
 # METADATA ********************
 
@@ -105,17 +83,18 @@ train_texts, train_labels, val_texts, val_labels = load_data(
 
 # MARKDOWN ********************
 
-# You will use this training data to build a model. The code to build the model is the same as what you saw in the tutorial. So that is copied below for you.
+# -------------------------------------------------------------------------------
+
+# MARKDOWN ********************
+
+# # 1) Determine trend with a moving average plot
 # 
-# First, run the cell below to look at a couple elements from your training data.
+# The *US Retail Sales* dataset contains monthly sales data for a number of retail industries in the United States. Run the next cell to see a plot of the *Food and Beverage* series.
 
 # CELL ********************
 
-print('Texts from training data\n------')
-print(train_texts[:2])
-print('\nLabels from training data\n------')
-print(train_labels[:2])
-
+ax = food_sales.plot(**plot_params)
+ax.set(title="US Food and Beverage Sales", ylabel="Millions of Dollars");
 
 # METADATA ********************
 
@@ -126,26 +105,112 @@ print(train_labels[:2])
 
 # MARKDOWN ********************
 
-# But because your data is different, there are **two lines in the modeling code cell that you'll need to change.** Can you figure out what they are? 
-# 
-# If you're not sure, take a second look at the data, and pay particular attention to the labels that should be fed to the text classifier.
+# Now make a moving average plot to estimate the trend for this series.
 
 # CELL ********************
 
-import spacy
-
-# Create an empty model
-nlp = spacy.blank('en')
-
-# Add the TextCategorizer to the empty model
-textcat = nlp.add_pipe('textcat')
-
-# Add labels to text classifier
-textcat.add_label("POSITIVE")
-textcat.add_label("NEGATIVE")
+# YOUR CODE HERE: Add methods to `food_sales` to compute a moving
+# average with appropriate parameters for trend estimation.
+trend = food_sales
 
 # Check your answer
-step_2.check()
+q_1.check()
+
+# Make a plot
+ax = food_sales.plot(**plot_params, alpha=0.5)
+ax = trend.plot(ax=ax, linewidth=3)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Uncomment to get a hint or solution
+q_1.hint()
+q_1.solution()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# -------------------------------------------------------------------------------
+#
+# # 2) Identify trend
+# 
+# What order polynomial trend might be appropriate for the *Food and Beverage Sales* series? Can you think of a non-polynomial curve that might work even better?
+# 
+# Once you've thought about it, run this cell for some discussion.
+
+# CELL ********************
+
+# View the solution (Run this cell to receive credit!)
+q_2.check()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# -------------------------------------------------------------------------------
+#
+# We'll continue using the time series of average sales in this lesson. Run this cell to see a moving average plot of `average_sales` estimating the trend.
+
+# CELL ********************
+
+trend = average_sales.rolling(
+    window=365,
+    center=True,
+    min_periods=183,
+).mean()
+
+ax = average_sales.plot(**plot_params, alpha=0.5)
+ax = trend.plot(ax=ax, linewidth=3)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# # 3) Create a Trend Feature
+#
+# Use `DeterministicProcess` to create a feature set for a cubic trend model. Also create features for a 90-day forecast.
+
+# CELL ********************
+
+from statsmodels.tsa.deterministic import DeterministicProcess
+
+y = average_sales.copy()  # the target
+
+# YOUR CODE HERE: Instantiate `DeterministicProcess` with arguments
+# appropriate for a cubic trend model
+dp = ____
+
+# YOUR CODE HERE: Create the feature set for the dates given in y.index
+X = ____
+
+# YOUR CODE HERE: Create features for a 90-day forecast.
+X_fore = ____
+
+
+# Check your answer
+q_3.check()
 
 # METADATA ********************
 
@@ -157,8 +222,8 @@ step_2.check()
 # CELL ********************
 
 # Lines below will give you a hint or solution code
-step_2.hint()
-step_2.solution()
+q_3.hint()
+q_3.solution()
 
 # METADATA ********************
 
@@ -169,68 +234,20 @@ step_2.solution()
 
 # MARKDOWN ********************
 
-# # Step 3: Train Function
-# 
-# Implement a function `train` that updates a model with training data. Most of this is general data munging, which we've filled in for you. 
-# 
-# Just add the one line of code necessary to update your model.
+# You can see the a plot of the result by running the next cell.
 
 # CELL ********************
 
-import random
-from spacy.util import minibatch
-from spacy.training.example import Example
+model = LinearRegression()
+model.fit(X, y)
 
-def train(model, train_data, optimizer, batch_size=8):
-    losses = {}
-    random.seed(1)
-    random.shuffle(train_data)
-    
-    # train_data is a list of tuples [(text0, label0), (text1, label1), ...]
-    for batch in minibatch(train_data, size=batch_size):
-        # Split batch into text and labels
-        for text, labels in batch:
-            doc = nlp.make_doc(text)
-            example = Example.from_dict(doc, labels)
-            # TODO: Update model with texts and labels
-            ____
-        
-    return losses
+y_pred = pd.Series(model.predict(X), index=X.index)
+y_fore = pd.Series(model.predict(X_fore), index=X_fore.index)
 
-# Check your answer
-step_3.check()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# Lines below will give you a hint or solution code
-step_3.hint()
-step_3.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# Fix seed for reproducibility
-spacy.util.fix_random_seed(1)
-random.seed(1)
-
-# This may take a while to run!
-optimizer = nlp.begin_training()
-train_data = list(zip(train_texts, train_labels))
-losses = train(nlp, train_data, optimizer)
-print(losses['textcat'])
+ax = y.plot(**plot_params, alpha=0.5, title="Average Sales", ylabel="items sold")
+ax = y_pred.plot(ax=ax, linewidth=3, label="Trend", color='C0')
+ax = y_fore.plot(ax=ax, linewidth=3, label="Trend Forecast", color='C3')
+ax.legend();
 
 # METADATA ********************
 
@@ -241,13 +258,25 @@ print(losses['textcat'])
 
 # MARKDOWN ********************
 
-# We can try this slightly trained model on some example text and look at the probabilities assigned to each label.
+# --------------------------------------------------------------------------------
+# 
+# One way to fit more complicated trends is to increase the order of the polynomial you use. To get a better fit to the somewhat complicated trend in *Store Sales*, we could try using an order 11 polynomial.
 
 # CELL ********************
 
-text = "This tea cup was full of holes. Do not recommend."
-doc = nlp(text)
-print(doc.cats)
+from statsmodels.tsa.deterministic import DeterministicProcess
+
+dp = DeterministicProcess(index=y.index, order=11)
+X = dp.in_sample()
+
+model = LinearRegression()
+model.fit(X, y)
+
+y_pred = pd.Series(model.predict(X), index=X.index)
+
+ax = y.plot(**plot_params, alpha=0.5, title="Average Sales", ylabel="items sold")
+ax = y_pred.plot(ax=ax, linewidth=3, label="Trend", color='C0')
+ax.legend();
 
 # METADATA ********************
 
@@ -258,31 +287,14 @@ print(doc.cats)
 
 # MARKDOWN ********************
 
-# These probabilities look reasonable. Now you should turn them into an actual prediction.
-# 
-# # Step 4: Making Predictions
-# 
-# Implement a function `predict` that predicts the sentiment of text examples. 
-# - First, tokenize the texts using `nlp.tokenizer()`. 
-# - Then, pass those docs to the TextCategorizer which you can get from `nlp.get_pipe()`. 
-# - Use the `textcat.predict()` method to get scores for each document, then choose the class with the highest score (probability) as the predicted class.
+# # 4) Understand risks of forecasting with high-order polynomials
+#
+# High-order polynomials are generally not well-suited to forecasting, however. Can you guess why?
 
 # CELL ********************
 
-def predict(nlp, texts): 
-    # Use the model's tokenizer to tokenize each input text
-    docs = ____
-    
-    # Use textcat to get the scores for each doc
-    ____
-    
-    # From the scores, find the class with the highest score/probability
-    predicted_class = ____
-    
-    return predicted_class
-
-# Check your answer
-step_4.check()
+# View the solution (Run this cell to receive credit!)
+q_4.check()
 
 # METADATA ********************
 
@@ -293,24 +305,8 @@ step_4.check()
 
 # CELL ********************
 
-# Lines below will give you a hint or solution code
-step_4.hint()
-step_4.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-texts = val_texts[34:38]
-predictions = predict(nlp, texts)
-
-for p, t in zip(predictions, texts):
-    print(f"{textcat.labels[p]}: {t} \n")
+# Uncomment the next line for a hint
+q_4.hint()
 
 # METADATA ********************
 
@@ -321,67 +317,17 @@ for p, t in zip(predictions, texts):
 
 # MARKDOWN ********************
 
-# It looks like your model is working well after going through the data just once. However you need to calculate some metric for the model's performance on the hold-out validation data.
-# 
-# # Step 5: Evaluate The Model
-# 
-# Implement a function that evaluates a `TextCategorizer` model. This function `evaluate` takes a model along with texts and labels. It returns the accuracy of the model, which is the number of correct predictions divided by all predictions.
-# 
-# First, use the `predict` method you wrote earlier to get the predicted class for each text in `texts`. Then, find where the predicted labels match the true "gold-standard" labels and calculate the accuracy.
+# Run this cell to see the same 90-day forecast using an order 11 polynomial. Does it confirm your intuition?
 
 # CELL ********************
 
-def evaluate(model, texts, labels):
-    """ Returns the accuracy of a TextCategorizer model. 
-    
-        Arguments
-        ---------
-        model: ScaPy model with a TextCategorizer
-        texts: Text samples, from load_data function
-        labels: True labels, from load_data function
-    
-    """
-    # Get predictions from textcat model (using your predict method)
-    predicted_class = ____
-    
-    # From labels, get the true class as a list of integers (POSITIVE -> 1, NEGATIVE -> 0)
-    true_class = ____
-    
-    # A boolean or int array indicating correct predictions
-    correct_predictions = ____
-    
-    # The accuracy, number of correct predictions divided by all predictions
-    accuracy = ____
-    
-    return accuracy
+X_fore = dp.out_of_sample(steps=90)
+y_fore = pd.Series(model.predict(X_fore), index=X_fore.index)
 
-# Check your answer
-step_5.check()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# Lines below will give you a hint or solution code
-step_5.hint()
-step_5.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-accuracy = evaluate(nlp, val_texts, val_labels)
-print(f"Accuracy: {accuracy:.4f}")
+ax = y.plot(**plot_params, alpha=0.5, title="Average Sales", ylabel="items sold")
+ax = y_pred.plot(ax=ax, linewidth=3, label="Trend", color='C0')
+ax = y_fore.plot(ax=ax, linewidth=3, label="Trend Forecast", color='C3')
+ax.legend();
 
 # METADATA ********************
 
@@ -392,46 +338,6 @@ print(f"Accuracy: {accuracy:.4f}")
 
 # MARKDOWN ********************
 
-# With the functions implemented, you can train and evaluate in a loop.
-
-# CELL ********************
-
-# This may take a while to run!
-n_iters = 5
-for i in range(n_iters):
-    losses = train(nlp, train_data, optimizer)
-    accuracy = evaluate(nlp, val_texts, val_labels)
-    print(f"Loss: {losses['textcat']:.3f} \t Accuracy: {accuracy:.3f}")
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# # Step 6: Keep Improving
+# # Keep Going #
 # 
-# You've built the necessary components to train a text classifier with spaCy. What could you do further to optimize the model?
-# 
-# Run the next line to check your answer.
-
-# CELL ********************
-
-# Check your answer (Run this code cell to receive credit!)
-step_6.solution()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# ## Keep Going
-# 
-# The next step is a big one. See how you can **[represent tokens as vectors that describe their meaning]**, and plug those into your machine learning models.
+# [**Model seasonality**], another common type of time dependence, with indicators and Fourier features.
