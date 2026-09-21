@@ -240,6 +240,3 @@ reviews.country + " - " + reviews.region_1
 # # Your turn
 # 
 # If you haven't started the exercise, you can start now in the notebook exercise
-
-# MARKDOWN ********************
-

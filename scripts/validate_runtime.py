@@ -141,6 +141,91 @@ def validate_notebook_metadata(
     return invalid
 
 
+def validate_notebook_structure(
+    notebooks: list[tuple[Path, str]],
+) -> list[str]:
+    """Return invalid Fabric notebook marker structure."""
+    invalid = []
+    for path, text in notebooks:
+        lines = text.splitlines()
+        markers = [
+            (line_index, match.group(1))
+            for line_index, line in enumerate(lines)
+            if (match := NOTEBOOK_MARKER_RE.match(line))
+        ]
+        relative_path = path.relative_to(ROOT)
+        if not markers:
+            invalid.append(f"{relative_path}:1: no Fabric notebook markers")
+            continue
+        if markers[0][1] != "METADATA":
+            invalid.append(
+                f"{relative_path}:{markers[0][0] + 1}: "
+                "first Fabric marker must be METADATA"
+            )
+
+        for marker_index, (line_index, marker_type) in enumerate(markers):
+            next_marker = (
+                markers[marker_index + 1]
+                if marker_index + 1 < len(markers)
+                else None
+            )
+            end_index = next_marker[0] if next_marker else len(lines)
+            body = lines[line_index + 1 : end_index]
+            nonblank = [
+                (body_index + line_index + 2, line)
+                for body_index, line in enumerate(body)
+                if line.strip()
+            ]
+
+            if not nonblank and next_marker is None:
+                invalid.append(
+                    f"{relative_path}:{line_index + 1}: "
+                    f"notebook ends with a bare {marker_type} marker"
+                )
+                continue
+
+            if marker_type == "CELL":
+                if not next_marker or next_marker[1] != "METADATA":
+                    transition = next_marker[1] if next_marker else "end of file"
+                    invalid.append(
+                        f"{relative_path}:{line_index + 1}: "
+                        f"CELL must be followed by METADATA, not {transition}"
+                    )
+                continue
+
+            if marker_type != "METADATA":
+                continue
+
+            if marker_index and markers[marker_index - 1][1] != "CELL":
+                invalid.append(
+                    f"{relative_path}:{line_index + 1}: "
+                    "cell METADATA must follow a CELL marker"
+                )
+
+            metadata_lines = [
+                (body_line, line)
+                for body_line, line in nonblank
+                if line.startswith("# META ")
+            ]
+            non_metadata_lines = [
+                (body_line, line)
+                for body_line, line in nonblank
+                if not line.startswith("# META ")
+            ]
+            if not metadata_lines:
+                invalid.append(
+                    f"{relative_path}:{line_index + 1}: "
+                    "METADATA marker has no META block"
+                )
+            if non_metadata_lines:
+                body_line, _ = non_metadata_lines[0]
+                invalid.append(
+                    f"{relative_path}:{body_line}: "
+                    "non-META text appears inside a METADATA block"
+                )
+    return invalid
+
+
 def validate_notebook_syntax(
     notebooks: list[tuple[Path, str]],
 ) -> list[str]:
@@ -315,6 +400,13 @@ def main() -> int:
             "are invalid JSON"
         )
 
+    invalid_notebook_structure = validate_notebook_structure(notebooks)
+    if invalid_notebook_structure:
+        errors.append(
+            f"{len(invalid_notebook_structure)} notebook source structure "
+            "errors were found"
+        )
+
     invalid_notebook_syntax = validate_notebook_syntax(notebooks)
     if invalid_notebook_syntax:
         errors.append(
@@ -415,6 +507,7 @@ def main() -> int:
         "logical_ids": len(logical_ids),
         "duplicate_logical_ids": duplicate_logical_ids,
         "invalid_notebook_metadata": invalid_notebook_metadata,
+        "invalid_notebook_structure": invalid_notebook_structure,
         "invalid_notebook_syntax": invalid_notebook_syntax,
         "fabric_environments": len(environment_dirs),
         "runtime_versions": dict(sorted(runtime_versions.items())),

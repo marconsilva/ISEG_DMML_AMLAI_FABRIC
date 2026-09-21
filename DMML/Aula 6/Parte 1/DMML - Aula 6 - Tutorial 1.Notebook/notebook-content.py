@@ -548,5 +548,3 @@ plt.show()
 # META   "language": "python",
 # META   "language_group": "jupyter_python"
 # META }
-
-# CELL ********************

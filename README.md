@@ -92,8 +92,9 @@ python .\scripts\validate_runtime.py --json
 
 It checks the notebook count, presence and JSON validity of each notebook's
 `.platform` metadata, unique logical IDs, embedded notebook metadata and Python
-cell syntax, local dependency coverage, Fabric built-in overrides, third-party
-import mapping coverage and availability, and referenced datasets.
+cell syntax, Fabric source marker structure, local dependency coverage, Fabric
+built-in overrides, third-party import mapping coverage and availability, and
+referenced datasets.
 It also warns when notebook `environmentId` values do not match known
 environment logical IDs in `Envs`. Missing local datasets are expected warnings
 because course data belongs in the Lakehouse rather than Git.
