@@ -21,6 +21,20 @@
 # META   }
 # META }
 
+
+
+# CELL ********************
+
+%pip install seaborn
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+
 # MARKDOWN ********************
 
 # # Introduction #

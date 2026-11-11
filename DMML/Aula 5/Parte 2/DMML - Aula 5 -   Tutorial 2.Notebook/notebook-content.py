@@ -79,6 +79,17 @@
 # 
 # This hidden cell imports some libraries and loads the dataset.
 
+# CELL ********************
+
+%pip install seaborn
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
 
 # CELL ********************
 

@@ -105,6 +105,17 @@
 #
 # As spatial features, [*California Housing*]'s `'Latitude'` and `'Longitude'` make natural candidates for k-means clustering. In this example we'll cluster these with `'MedInc'` (median income) to create economic segments in different regions of California.
 
+# CELL ********************
+
+%pip install seaborn
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
 
 # CELL ********************
 

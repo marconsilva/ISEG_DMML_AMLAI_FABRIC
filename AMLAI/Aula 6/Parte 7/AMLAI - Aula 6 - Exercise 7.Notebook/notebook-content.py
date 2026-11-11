@@ -14,6 +14,16 @@
 # META     }
 # META   }
 # META }
+# CELL ********************
+
+%pip install seaborn
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
 
 # MARKDOWN ********************
 

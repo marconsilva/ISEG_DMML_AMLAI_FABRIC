@@ -240,26 +240,25 @@ animals
 
 # MARKDOWN ********************
 
-# In the cell below, write code to save this DataFrame in Lakehouse as a csv file with the name `cows_and_goats.csv`. Use the path "/lakehouse/default/Files/" to save the data.
+# In the cell below, write code to save this DataFrame in Lakehouse as a csv file with the name `cows_and_goats.csv`. 
+# You will need to create a new lake house and save the DataFrame as a csv file there, as you do not have write access to the default location that is the current shared lakehouse you are using to get all the exercice files.
+# 
+# To get the mount path for the local lakehouse after creating it, right click on the folder you created copy the path and use it to extract the mount path.
+# the path you get will be used with notebookutils.fs.getMountPath to get the mount path.
+# it should be something like "abfss://<workspace_id>@onelake.dfs.fabric.microsoft.com/<local_lakehouse_id>/Files"
+
 
 # CELL ********************
 
-# Your code goes here
+# Adapt the following code to your local lakehouse details
+import notebookutils
+workspace_id = "<workspace_id>"          # workspace of LocalLakeHouse
+local_lakehouse_id = "<local_lakehouse_id>"    # LocalLakeHouse id
 
-# Check your answer
-q5.check()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "jupyter_python"
-# META }
-
-# CELL ********************
-
-#q5.hint()
-#q5.solution()
+# Mount the local lakehouse to the path "/myLakeHouse"
+# you can rename the mount point if you like, just make sure to use the same path in notebookutils.fs.getMountPath() below.
+notebookutils.fs.mount(f"abfss://{workspace_id}@onelake.dfs.fabric.microsoft.com/{local_lakehouse_id}", "/myLakeHouse")
+animals.to_csv(f"{notebookutils.fs.getMountPath('/myLakeHouse')}/Files/data.csv", index=False)
 
 # METADATA ********************
 

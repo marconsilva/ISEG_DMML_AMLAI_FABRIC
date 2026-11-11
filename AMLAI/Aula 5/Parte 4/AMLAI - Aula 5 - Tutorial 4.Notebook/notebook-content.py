@@ -199,6 +199,18 @@
 
 # CELL ********************
 
+%pip install seaborn
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+
+# CELL ********************
+
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import seaborn as sns

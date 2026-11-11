@@ -33,6 +33,18 @@
 # - Complete [Part 1: Ingest data](https://learn.microsoft.com/fabric/data-science/tutorial-data-science-ingest-data).
 # - Attach the same lakehouse you used in Part 1 to this notebook.
 
+# CELL ********************
+
+%pip install seaborn
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+
 # MARKDOWN ********************
 
 # ## Read raw data from the lakehouse

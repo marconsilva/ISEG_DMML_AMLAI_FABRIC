@@ -39,6 +39,8 @@
 
 # Install imblearn for SMOTE using pip
 %pip install -q imbalanced-learn
+%pip install seaborn
+
 
 # METADATA ********************
 

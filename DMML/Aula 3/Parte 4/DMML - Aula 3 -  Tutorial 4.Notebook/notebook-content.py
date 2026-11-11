@@ -46,6 +46,20 @@
 # * How can I present my model at an important presentation?
 # * In this notebook, we are going to dig into how to *evaluate classification machine learning models*.
 
+
+
+# CELL ********************
+
+%pip install seaborn
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+
 # MARKDOWN ********************
 
 # # Import Library
