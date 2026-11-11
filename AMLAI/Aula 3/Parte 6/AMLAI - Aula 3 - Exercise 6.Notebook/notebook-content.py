@@ -98,7 +98,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
 from sklearn.compose import make_column_transformer
 
-hotel = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula3', 'hotel.csv'))
+hotel = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'hotel.csv'))
 
 X = hotel.copy()
 y = X.pop('is_canceled')

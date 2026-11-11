@@ -91,7 +91,7 @@ mlflow.autolog(disable=True)
 
 plt.style.use("seaborn-v0_8-whitegrid")
 
-df = pd.read_csv("/lakehouse/default/Files/DMML_Aula5/autos.csv")
+df = pd.read_csv("/lakehouse/default/Files/DMML_Aula6/autos.csv")
 df.head()
 
 # METADATA ********************

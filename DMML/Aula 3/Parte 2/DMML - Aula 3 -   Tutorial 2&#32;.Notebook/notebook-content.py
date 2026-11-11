@@ -84,7 +84,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import cross_val_score
 
-df = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/concrete.csv")
+df = pd.read_csv("/lakehouse/default/Files/DMML_Aula4/concrete.csv")
 df.head()
 
 # METADATA ********************

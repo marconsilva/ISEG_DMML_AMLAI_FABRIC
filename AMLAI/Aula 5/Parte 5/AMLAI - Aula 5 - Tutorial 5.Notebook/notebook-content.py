@@ -234,7 +234,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # CELL ********************
 
-curr_dir = '/lakehouse/default/Files/AMLAI_Aula5/'
+curr_dir = '/lakehouse/default/Files/AMLAI_Aula6/'
 all_headlines = []
 for filename in os.listdir(curr_dir):
     if 'Articles' in filename:

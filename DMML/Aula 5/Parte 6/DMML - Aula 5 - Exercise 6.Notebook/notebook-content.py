@@ -73,8 +73,8 @@ from sklearn.model_selection import train_test_split
 # CELL ********************
 
 # Load the data
-train_data = pd.read_csv('/lakehouse/default/Files/DMML_Aula5/home-data-for-ml-course/train.csv')
-test_data  = pd.read_csv('/lakehouse/default/Files/DMML_Aula5/home-data-for-ml-course/test.csv')
+train_data = pd.read_csv('/lakehouse/default/Files/DMML_Aula6/home-data-for-ml-course/train.csv')
+test_data  = pd.read_csv('/lakehouse/default/Files/DMML_Aula6/home-data-for-ml-course/test.csv')
 
 # Selecting features
 

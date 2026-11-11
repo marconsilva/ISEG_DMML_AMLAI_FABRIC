@@ -84,7 +84,7 @@
 import pandas as pd
 
 # Read the data
-data = pd.read_csv('/lakehouse/default/Files/DMML_Aula4/AER_credit_card_data.csv',
+data = pd.read_csv('/lakehouse/default/Files/DMML_Aula5/AER_credit_card_data.csv',
                    true_values = ['yes'], false_values = ['no'])
 
 # Select target

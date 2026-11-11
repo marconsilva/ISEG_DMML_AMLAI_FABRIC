@@ -84,7 +84,7 @@ from sklearn.linear_model import LogisticRegression
 
 # CELL ********************
 
-data_filepath = "/lakehouse/default/Files/DMML_Aula3/pima-indians-diabetes.data"
+data_filepath = "/lakehouse/default/Files/DMML_Aula4/pima-indians-diabetes.data"
 
 col_names = ['pregnant', 'glucose', 'bp', 'skin', 'insulin', 'bmi', 'pedigree', 'age','label']
 dataset = pd.read_csv(data_filepath, header=None, names=col_names)

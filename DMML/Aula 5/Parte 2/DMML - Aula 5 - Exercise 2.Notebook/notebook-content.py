@@ -74,7 +74,7 @@ plt.rc(
 
 
 # Load data
-df = pd.read_csv("/lakehouse/default/Files/DMML_Aula5/ames.csv")
+df = pd.read_csv("/lakehouse/default/Files/DMML_Aula6/ames.csv")
 
 
 # Utility functions from Tutorial

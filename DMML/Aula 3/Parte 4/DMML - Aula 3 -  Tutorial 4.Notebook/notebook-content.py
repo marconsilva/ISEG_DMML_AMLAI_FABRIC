@@ -98,7 +98,7 @@ from sklearn.metrics import (
 
 # CELL ********************
 
-df = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/creditcard.csv")
+df = pd.read_csv("/lakehouse/default/Files/DMML_Aula4/creditcard.csv")
 
 df.drop(columns=["Time"], inplace=True)
 

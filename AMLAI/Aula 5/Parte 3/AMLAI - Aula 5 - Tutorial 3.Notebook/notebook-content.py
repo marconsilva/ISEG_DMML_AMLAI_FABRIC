@@ -109,7 +109,7 @@ import pandas as pd
 
 # Loading the spam data
 # ham is the label for non-spam messages
-spam = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula5/spam.csv')
+spam = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula6/spam.csv')
 
 with nlp.disable_pipes():
     doc_vectors = np.array([nlp(text).vector for text in spam.text])

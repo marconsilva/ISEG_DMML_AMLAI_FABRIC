@@ -235,7 +235,7 @@ plt.rc('axes', labelweight='bold', labelsize='large',
 plt.rc('image', cmap='magma')
 
 image_path = os.path.join(
-    DATA_ROOT, 'AMLAI_Aula4', 'computer-vision-resources', 'car_feature.jpg'
+    DATA_ROOT, 'AMLAI_Aula5', 'computer-vision-resources', 'car_feature.jpg'
 )
 image = tf.io.read_file(image_path)
 image = tf.io.decode_jpeg(image)

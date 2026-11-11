@@ -77,7 +77,7 @@
 import pandas as pd
 
 # Read the data
-data = pd.read_csv('/lakehouse/default/Files/DMML_Aula5/melb_data.csv')
+data = pd.read_csv('/lakehouse/default/Files/DMML_Aula6/melb_data.csv')
 
 # Select subset of predictors
 cols_to_use = ['Rooms', 'Distance', 'Landsize', 'BuildingArea', 'YearBuilt']

@@ -79,7 +79,7 @@ print("Setup Complete")
 # CELL ********************
 
 import pandas as pd
-data = pd.read_csv("/lakehouse/default/Files/DMML_Aula4/Salary_Data.csv")
+data = pd.read_csv("/lakehouse/default/Files/DMML_Aula5/Salary_Data.csv")
 
 
 # METADATA ********************

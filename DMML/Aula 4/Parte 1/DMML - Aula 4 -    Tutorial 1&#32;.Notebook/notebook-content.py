@@ -157,7 +157,7 @@ if mlflow is not None:
 
 # CELL ********************
 
-USAhousing = pd.read_csv('/lakehouse/default/Files/DMML_Aula4/USA_Housing.csv')
+USAhousing = pd.read_csv('/lakehouse/default/Files/DMML_Aula5/USA_Housing.csv')
 USAhousing.head()
 
 # METADATA ********************

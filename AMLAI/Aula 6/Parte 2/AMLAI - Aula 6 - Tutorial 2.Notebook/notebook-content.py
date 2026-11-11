@@ -103,7 +103,7 @@ plot_params = dict(
 
 
 # Load Tunnel Traffic dataset
-data_dir = Path("/lakehouse/default/Files/AMLAI_Aula6/")
+data_dir = Path("/lakehouse/default/Files/AMLAI_Aula7/")
 tunnel = pd.read_csv(data_dir / "tunnel.csv", parse_dates=["Day"])
 tunnel = tunnel.set_index("Day").to_period()
 

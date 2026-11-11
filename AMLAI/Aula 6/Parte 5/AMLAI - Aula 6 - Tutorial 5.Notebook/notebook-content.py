@@ -142,7 +142,7 @@ plot_params = dict(
     markerfacecolor="0.25",
 )
 
-data_dir = Path("/lakehouse/default/Files/AMLAI_Aula6")
+data_dir = Path("/lakehouse/default/Files/AMLAI_Aula7")
 industries = ["BuildingMaterials", "FoodAndBeverage"]
 retail = pd.read_csv(
     data_dir / "us-retail-sales.csv",

@@ -47,10 +47,10 @@ plt.rc(
     titlepad=10,
 )
 
-accidents = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/fe-course-data/accidents.csv")
-autos = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/fe-course-data/autos.csv")
-concrete = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/fe-course-data/concrete.csv")
-customer = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/fe-course-data/customer.csv")
+accidents = pd.read_csv("/lakehouse/default/Files/DMML_Aula4/fe-course-data/accidents.csv")
+autos = pd.read_csv("/lakehouse/default/Files/DMML_Aula4/fe-course-data/autos.csv")
+concrete = pd.read_csv("/lakehouse/default/Files/DMML_Aula4/fe-course-data/concrete.csv")
+customer = pd.read_csv("/lakehouse/default/Files/DMML_Aula4/fe-course-data/customer.csv")
 
 # METADATA ********************
 

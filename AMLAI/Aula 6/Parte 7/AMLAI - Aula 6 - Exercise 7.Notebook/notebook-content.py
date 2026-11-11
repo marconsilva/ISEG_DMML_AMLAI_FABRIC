@@ -45,7 +45,7 @@ from sklearn.linear_model import LinearRegression
 from statsmodels.tsa.deterministic import CalendarFourier, DeterministicProcess
 
 
-path = '/lakehouse/default/Files/AMLAI_Aula6/dataset.txt'
+path = '/lakehouse/default/Files/AMLAI_Aula7/dataset.txt'
 df = pd.read_csv(path)
 
 

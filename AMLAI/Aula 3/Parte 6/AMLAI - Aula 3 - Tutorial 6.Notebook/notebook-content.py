@@ -105,7 +105,7 @@ from IPython.display import display
 import mlflow
 mlflow.autolog(disable=True)
 
-ion = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula3', 'ion.csv'), index_col=0)
+ion = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'ion.csv'), index_col=0)
 display(ion.head())
 
 df = ion.copy()

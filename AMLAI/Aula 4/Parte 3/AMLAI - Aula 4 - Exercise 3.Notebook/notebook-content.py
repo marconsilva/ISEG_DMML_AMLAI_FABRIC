@@ -94,7 +94,7 @@ plt.rc('image', cmap='magma')
 
 # Read image
 image_path = os.path.join(
-    DATA_ROOT, 'AMLAI_Aula4', 'computer-vision-resources', 'car_illus.jpg'
+    DATA_ROOT, 'AMLAI_Aula5', 'computer-vision-resources', 'car_illus.jpg'
 )
 image = tf.io.read_file(image_path)
 image = tf.io.decode_jpeg(image, channels=1)
@@ -343,7 +343,7 @@ from tensorflow.keras import layers
 
 # Load VGG16
 pretrained_base = tf.keras.models.load_model(
-    os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'cv-course-models',
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'cv-course-models',
                  'cv-course-models', 'vgg16-pretrained-base'),
 )
 
@@ -355,7 +355,7 @@ model = keras.Sequential([
 
 # Load dataset
 ds = tf.keras.utils.image_dataset_from_directory(
-    os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'car-or-truck', 'train'),
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'car-or-truck', 'train'),
     labels='inferred',
     label_mode='binary',
     image_size=[128, 128],

@@ -110,15 +110,15 @@ print("Setup Complete")
 from pathlib import Path
 
 data_candidates = [
-    Path('/lakehouse/default/Files/DMML_Aula8/pulsar_stars.csv'),
-    Path.cwd() / 'Files' / 'DMML_Aula8' / 'pulsar_stars.csv',
+    Path('/lakehouse/default/Files/AMLAI_Aula1/pulsar_stars.csv'),
+    Path.cwd() / 'Files' / 'AMLAI_Aula1' / 'pulsar_stars.csv',
     Path.cwd() / 'pulsar_stars.csv',
 ]
 data = next((path for path in data_candidates if path.exists()), data_candidates[0])
 if not data.exists():
     raise FileNotFoundError(
-        "Upload pulsar_stars.csv to Files/DMML_Aula8 in the attached lakehouse "
-        "or place it in a local Files/DMML_Aula8 folder."
+        "Upload pulsar_stars.csv to Files/AMLAI_Aula1 in the attached lakehouse "
+        "or place it in a local Files/AMLAI_Aula1 folder."
     )
 
 df = pd.read_csv(data)

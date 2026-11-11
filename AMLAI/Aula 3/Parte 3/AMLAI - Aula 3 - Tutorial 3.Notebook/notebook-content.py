@@ -150,7 +150,7 @@ from IPython.display import display
 import mlflow
 mlflow.autolog(disable=True)
 
-red_wine = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula3', 'red-wine.csv'))
+red_wine = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'red-wine.csv'))
 
 # Create training and validation splits
 df_train = red_wine.sample(frac=0.7, random_state=0)

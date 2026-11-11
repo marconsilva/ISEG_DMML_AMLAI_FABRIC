@@ -94,7 +94,7 @@ tf.config.run_functions_eagerly(True)
 # CELL ********************
 
 image_path = os.path.join(
-    DATA_ROOT, 'AMLAI_Aula4', 'computer-vision-resources', 'car_illus.jpg'
+    DATA_ROOT, 'AMLAI_Aula5', 'computer-vision-resources', 'car_illus.jpg'
 )
 image = tf.io.read_file(image_path)
 image = tf.io.decode_jpeg(image, channels=1)

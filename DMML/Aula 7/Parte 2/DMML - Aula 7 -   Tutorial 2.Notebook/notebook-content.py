@@ -167,7 +167,7 @@ def make_mi_scores(X, y, discrete_features):
     return mi_scores
 
 
-df = pd.read_csv("/lakehouse/default/Files/DMML_Aula7/autos.csv")
+df = pd.read_csv("/lakehouse/default/Files/DMML_Aula8/autos.csv")
 
 # METADATA ********************
 

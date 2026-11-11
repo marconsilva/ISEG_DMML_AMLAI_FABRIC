@@ -171,7 +171,7 @@ warnings.filterwarnings("ignore") # to clean up output cells
 
 # Load training and validation sets
 ds_train_ = tf.keras.utils.image_dataset_from_directory(
-    os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'car-or-truck', 'train'),
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'car-or-truck', 'train'),
     labels='inferred',
     label_mode='binary',
     image_size=[128, 128],
@@ -180,7 +180,7 @@ ds_train_ = tf.keras.utils.image_dataset_from_directory(
     shuffle=True,
 )
 ds_valid_ = tf.keras.utils.image_dataset_from_directory(
-    os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'car-or-truck', 'valid'),
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'car-or-truck', 'valid'),
     labels='inferred',
     label_mode='binary',
     image_size=[128, 128],
@@ -240,7 +240,7 @@ import matplotlib.pyplot as plt
 # CELL ********************
 
 pretrained_base = tf.keras.models.load_model(
-    os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'cv-course-models',
+    os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'cv-course-models',
                  'cv-course-models', 'vgg16-pretrained-base'),
 )
 pretrained_base.trainable = False

@@ -193,7 +193,7 @@ print(after.decode("ascii"))
 # CELL ********************
 
 # try to read in a file not in UTF-8
-kickstarter_2016 = pd.read_csv("/lakehouse/default/Files/DMML_Aula2/ks-projects-201612.csv")
+kickstarter_2016 = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/ks-projects-201612.csv")
 
 # METADATA ********************
 
@@ -212,7 +212,7 @@ kickstarter_2016 = pd.read_csv("/lakehouse/default/Files/DMML_Aula2/ks-projects-
 # CELL ********************
 
 # look at the first ten thousand bytes to guess the character encoding
-with open("/lakehouse/default/Files/DMML_Aula2/ks-projects-201801.csv", 'rb') as rawdata:
+with open("/lakehouse/default/Files/DMML_Aula3/ks-projects-201801.csv", 'rb') as rawdata:
     result = charset_normalizer.detect(rawdata.read(10000))
 
 # check what the character encoding might be
@@ -232,7 +232,7 @@ print(result)
 # CELL ********************
 
 # read in the file with the encoding detected by charset_normalizer
-kickstarter_2016 = pd.read_csv("/lakehouse/default/Files/DMML_Aula2/ks-projects-201612.csv", encoding='Windows-1252')
+kickstarter_2016 = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/ks-projects-201612.csv", encoding='Windows-1252')
 
 # look at the first few lines
 kickstarter_2016.head()

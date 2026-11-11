@@ -94,7 +94,7 @@ print("Setup Complete")
 # CELL ********************
 
 customers = pd.read_csv(
-    "/lakehouse/default/Files/DMML_Aula4/Ecommerce Customers.txt"
+    "/lakehouse/default/Files/DMML_Aula5/Ecommerce Customers.txt"
 )
 
 # METADATA ********************

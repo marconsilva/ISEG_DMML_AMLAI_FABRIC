@@ -114,7 +114,7 @@ import numpy as np
 import mlflow
 mlflow.autolog(disable=True)
 
-wine_df = pd.read_csv("/lakehouse/default/Files/DMML_Aula5/winequality-red.csv")
+wine_df = pd.read_csv("/lakehouse/default/Files/DMML_Aula6/winequality-red.csv")
 wine_df.head()
 
 

@@ -204,7 +204,7 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-data = pd.read_csv("/lakehouse/default/Files/AMLAI_Aula5/tsla.us.txt")
+data = pd.read_csv("/lakehouse/default/Files/AMLAI_Aula6/tsla.us.txt")
 
 # METADATA ********************
 

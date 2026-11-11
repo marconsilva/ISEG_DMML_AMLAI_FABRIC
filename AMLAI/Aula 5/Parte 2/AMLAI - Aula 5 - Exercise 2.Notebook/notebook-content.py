@@ -93,7 +93,7 @@ def load_data(csv_file, split=0.9):
     return texts[:split], train_labels, texts[split:], val_labels
 
 train_texts, train_labels, val_texts, val_labels = load_data(
-    '/lakehouse/default/Files/AMLAI_Aula5/yelp_ratings.csv'
+    '/lakehouse/default/Files/AMLAI_Aula6/yelp_ratings.csv'
 )
 
 # METADATA ********************

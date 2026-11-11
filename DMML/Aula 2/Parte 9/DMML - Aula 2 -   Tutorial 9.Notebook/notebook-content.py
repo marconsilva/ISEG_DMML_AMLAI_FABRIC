@@ -53,7 +53,7 @@ import seaborn as sns
 import datetime
 
 # read in our data
-landslides = pd.read_csv("/lakehouse/default/Files/DMML_Aula2/catalog.csv")
+landslides = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/catalog.csv")
 
 # set seed for reproducibility
 np.random.seed(0)

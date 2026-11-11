@@ -111,7 +111,7 @@ if mlflow is not None:
     mlflow.autolog(disable=True)
 
 # Read the data
-data = pd.read_csv('/lakehouse/default/Files/DMML_Aula2/melb_data.csv')
+data = pd.read_csv('/lakehouse/default/Files/DMML_Aula3/melb_data.csv')
 
 # Separate target from predictors
 y = data.Price

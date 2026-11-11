@@ -57,7 +57,7 @@
 import pandas as pd
 
 # Load data
-melbourne_file_path = '/lakehouse/default/Files/DMML_Aula5/melb_data.csv'
+melbourne_file_path = '/lakehouse/default/Files/DMML_Aula6/melb_data.csv'
 melbourne_data = pd.read_csv(melbourne_file_path)
 # Filter rows with missing price values
 filtered_melbourne_data = melbourne_data.dropna(axis=0)

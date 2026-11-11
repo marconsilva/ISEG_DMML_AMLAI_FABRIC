@@ -197,7 +197,7 @@ def plot_multistep(y, every=1, ax=None, palette_kwargs=None):
     return ax
 
 
-data_dir = Path("/lakehouse/default/Files/AMLAI_Aula6")
+data_dir = Path("/lakehouse/default/Files/AMLAI_Aula7")
 flu_trends = pd.read_csv(data_dir / "flu-trends.csv")
 flu_trends.set_index(
     pd.PeriodIndex(flu_trends.Week, freq="W"),

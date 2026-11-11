@@ -66,7 +66,7 @@ def score_dataset(X, y, model=XGBRegressor()):
 
 
 # Prepare data
-df = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/fe-course-data/ames.csv")
+df = pd.read_csv("/lakehouse/default/Files/DMML_Aula4/fe-course-data/ames.csv")
 X = df.copy()
 y = X.pop("SalePrice")
 

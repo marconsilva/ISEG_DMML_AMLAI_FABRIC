@@ -46,7 +46,7 @@ from statsmodels.graphics.tsaplots import plot_pacf
 from statsmodels.tsa.deterministic import CalendarFourier, DeterministicProcess
 
 
-comp_dir = Path('/lakehouse/default/Files/AMLAI_Aula6/store-sales-time-series-forecasting')
+comp_dir = Path('/lakehouse/default/Files/AMLAI_Aula7/store-sales-time-series-forecasting')
 
 store_sales = pd.read_csv(
     comp_dir / 'train.csv',

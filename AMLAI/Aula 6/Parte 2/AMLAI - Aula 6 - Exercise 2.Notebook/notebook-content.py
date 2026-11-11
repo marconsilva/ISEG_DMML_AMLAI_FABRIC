@@ -48,8 +48,8 @@ import numpy as np
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
 
-data_dir = Path('/lakehouse/default/Files/AMLAI_Aula6/')
-comp_dir = Path('/lakehouse/default/Files/AMLAI_Aula6/store-sales-time-series-forecasting')
+data_dir = Path('/lakehouse/default/Files/AMLAI_Aula7/')
+comp_dir = Path('/lakehouse/default/Files/AMLAI_Aula7/store-sales-time-series-forecasting')
 
 retail_sales = pd.read_csv(
     data_dir / "us-retail-sales.csv",

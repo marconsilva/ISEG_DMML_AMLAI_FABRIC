@@ -320,7 +320,7 @@ def Reg_Models_Evaluation_Metrics (model,X_train,y_train,X_test,y_test,y_pred):
 
 column_names = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT', 'MEDV']
 
-raw_df1 = pd.read_csv('/lakehouse/default/Files/DMML_Aula4/avocado.csv')
+raw_df1 = pd.read_csv('/lakehouse/default/Files/DMML_Aula5/avocado.csv')
 
 
 # METADATA ********************

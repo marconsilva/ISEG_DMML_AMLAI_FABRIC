@@ -74,7 +74,7 @@ import seaborn as sns
 import datetime
 
 # read in our data
-earthquakes = pd.read_csv("/lakehouse/default/Files/DMML_Aula2/database.csv")
+earthquakes = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/database.csv")
 
 # set seed for reproducibility
 np.random.seed(0)

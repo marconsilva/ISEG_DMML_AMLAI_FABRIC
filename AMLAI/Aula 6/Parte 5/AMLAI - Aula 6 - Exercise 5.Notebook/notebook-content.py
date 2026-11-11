@@ -48,8 +48,8 @@ from statsmodels.tsa.deterministic import DeterministicProcess
 from xgboost import XGBRegressor
 
 
-comp_dir = Path('/lakehouse/default/Files/AMLAI_Aula6/store-sales-time-series-forecasting')
-data_dir = Path("/lakehouse/default/Files/AMLAI_Aula6")
+comp_dir = Path('/lakehouse/default/Files/AMLAI_Aula7/store-sales-time-series-forecasting')
+data_dir = Path("/lakehouse/default/Files/AMLAI_Aula7")
 
 store_sales = pd.read_csv(
     comp_dir / 'train.csv',

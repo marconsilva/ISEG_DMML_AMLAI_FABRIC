@@ -94,7 +94,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # read in all our data
-kickstarters_2017 = pd.read_csv("/lakehouse/default/Files/DMML_Aula2/ks-projects-201801.csv")
+kickstarters_2017 = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/ks-projects-201801.csv")
 
 # set seed for reproducibility
 np.random.seed(0)

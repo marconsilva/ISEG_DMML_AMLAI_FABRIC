@@ -98,7 +98,7 @@ from learntools.computer_vision.visiontools import edge, blur, bottom_sobel, emb
 import mlflow
 mlflow.autolog(disable=True)
 
-image_dir = os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'computer-vision-resources', '')
+image_dir = os.path.join(DATA_ROOT, 'AMLAI_Aula5', 'computer-vision-resources', '')
 circle_64 = tf.expand_dims(circle([64, 64], val=1.0, r_shrink=4), axis=-1)
 kaggle_k = visiontools.read_image(image_dir + str('k.jpg'), channels=1)
 car = visiontools.read_image(image_dir + str('car_illus.jpg'), channels=1)
@@ -232,7 +232,7 @@ import pandas as pd
 # Load the time series as a Pandas dataframe
 machinelearning = pd.read_csv(
     os.path.join(
-        DATA_ROOT, 'AMLAI_Aula4', 'computer-vision-resources',
+        DATA_ROOT, 'AMLAI_Aula5', 'computer-vision-resources',
         'machinelearning.csv'
     ),
     parse_dates=['Week'],

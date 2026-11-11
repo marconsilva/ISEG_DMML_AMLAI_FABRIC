@@ -71,7 +71,7 @@ import pandas as pd
 import numpy as np
 
 # read in all our data
-sf_permits = pd.read_csv("/lakehouse/default/Files/DMML_Aula2/Building_Permits.csv")
+sf_permits = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/Building_Permits.csv")
 
 # set seed for reproducibility
 np.random.seed(0) 

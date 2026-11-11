@@ -139,7 +139,7 @@ q1.solution()
 
 # # 2) Reading in files with encoding problems
 #
-# Use the code cell below to read in this file at path `"/lakehouse/default/Files/DMML_Aula2/PoliceKillingsUS.csv"`.
+# Use the code cell below to read in this file at path `"/lakehouse/default/Files/DMML_Aula3/PoliceKillingsUS.csv"`.
 #
 # Figure out what the correct encoding should be and read in the file to a DataFrame `police_killings`.
 

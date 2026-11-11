@@ -45,7 +45,7 @@ import pandas as pd
 import numpy as np
 
 # read in all our data
-nfl_data = pd.read_csv("/lakehouse/default/Files/DMML_Aula2/NFL Play by Play 2009-2017 (v4).csv")
+nfl_data = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/NFL Play by Play 2009-2017 (v4).csv")
 
 # set seed for reproducibility
 np.random.seed(0) 

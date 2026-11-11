@@ -95,8 +95,8 @@ if mlflow is not None:
     mlflow.autolog(disable=True)
 
 # Read the data
-X_full = pd.read_csv('/lakehouse/default/Files/DMML_Aula2/home-data-for-ml-course/train.csv', index_col='Id')
-X_test_full = pd.read_csv('/lakehouse/default/Files/DMML_Aula2/home-data-for-ml-course/test.csv', index_col='Id')
+X_full = pd.read_csv('/lakehouse/default/Files/DMML_Aula3/home-data-for-ml-course/train.csv', index_col='Id')
+X_test_full = pd.read_csv('/lakehouse/default/Files/DMML_Aula3/home-data-for-ml-course/test.csv', index_col='Id')
 
 # Remove rows with missing target, separate target from predictors
 X_full.dropna(axis=0, subset=['SalePrice'], inplace=True)

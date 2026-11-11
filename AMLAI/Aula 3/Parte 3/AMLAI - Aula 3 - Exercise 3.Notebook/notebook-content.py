@@ -101,7 +101,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import make_column_transformer, make_column_selector
 from sklearn.model_selection import train_test_split
 
-fuel = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula3', 'fuel.csv'))
+fuel = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'fuel.csv'))
 
 X = fuel.copy()
 # Remove target

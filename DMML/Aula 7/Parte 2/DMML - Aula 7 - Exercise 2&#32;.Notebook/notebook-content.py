@@ -137,7 +137,7 @@ def score_dataset(X, y, model=XGBRegressor()):
     return score
 
 
-df = pd.read_csv("/lakehouse/default/Files/DMML_Aula7/ames.csv")
+df = pd.read_csv("/lakehouse/default/Files/DMML_Aula8/ames.csv")
 
 # METADATA ********************
 

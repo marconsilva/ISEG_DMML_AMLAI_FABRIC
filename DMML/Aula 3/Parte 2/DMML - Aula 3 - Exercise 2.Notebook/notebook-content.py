@@ -75,7 +75,7 @@ from learntools.feature_engineering.ex1 import *
 
 import pandas as pd
 
-click_data = pd.read_csv('/lakehouse/default/Files/DMML_Aula3/feature-engineering-data/train_sample.csv',
+click_data = pd.read_csv('/lakehouse/default/Files/DMML_Aula4/feature-engineering-data/train_sample.csv',
                          parse_dates=['click_time'])
 click_data.head()
 

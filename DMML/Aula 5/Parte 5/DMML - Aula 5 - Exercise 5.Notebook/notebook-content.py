@@ -74,8 +74,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 # Read the data
-train_data = pd.read_csv('/lakehouse/default/Files/DMML_Aula5/home-data-for-ml-course/train.csv', index_col='Id')
-test_data = pd.read_csv('/lakehouse/default/Files/DMML_Aula5/home-data-for-ml-course/test.csv', index_col='Id')
+train_data = pd.read_csv('/lakehouse/default/Files/DMML_Aula6/home-data-for-ml-course/train.csv', index_col='Id')
+test_data = pd.read_csv('/lakehouse/default/Files/DMML_Aula6/home-data-for-ml-course/test.csv', index_col='Id')
 
 # Remove rows with missing target, separate target from predictors
 train_data.dropna(axis=0, subset=['SalePrice'], inplace=True)

@@ -71,7 +71,7 @@ print("Setup Complete")
 
 # CELL ********************
 
-data = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula5/international-airline-passengers.csv',skipfooter=5) # The last 5 data was contaminated
+data = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula6/international-airline-passengers.csv',skipfooter=5) # The last 5 data was contaminated
 data.head()
 
 # METADATA ********************

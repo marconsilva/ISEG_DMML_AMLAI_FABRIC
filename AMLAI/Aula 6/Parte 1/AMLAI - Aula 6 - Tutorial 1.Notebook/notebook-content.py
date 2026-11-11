@@ -42,7 +42,7 @@ import mlflow
 mlflow.autolog(disable=True)
 
 df = pd.read_csv(
-    "/lakehouse/default/Files/AMLAI_Aula6/book_sales.csv",
+    "/lakehouse/default/Files/AMLAI_Aula7/book_sales.csv",
     index_col='Date',
     parse_dates=['Date'],
 ).drop('Paperback', axis=1)
@@ -232,7 +232,7 @@ plot_params = dict(
 
 
 # Load Tunnel Traffic dataset
-data_dir = Path("/lakehouse/default/Files/AMLAI_Aula6")
+data_dir = Path("/lakehouse/default/Files/AMLAI_Aula7")
 tunnel = pd.read_csv(data_dir / "tunnel.csv", parse_dates=["Day"])
 
 # Create a time series in Pandas by setting the index to a date

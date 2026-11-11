@@ -60,7 +60,7 @@ from fuzzywuzzy import process
 import charset_normalizer
 
 # read in all our data
-professors = pd.read_csv("/lakehouse/default/Files/DMML_Aula2/pakistan_intellectual_capital.csv")
+professors = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/pakistan_intellectual_capital.csv")
 
 # set seed for reproducibility
 np.random.seed(0)

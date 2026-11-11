@@ -129,7 +129,7 @@ plt.rc(
     titlepad=10,
 )
 
-df = pd.read_csv("/lakehouse/default/Files/DMML_Aula7/housing.csv")
+df = pd.read_csv("/lakehouse/default/Files/DMML_Aula8/housing.csv")
 X = df.loc[:, ["MedInc", "Latitude", "Longitude"]]
 X.head()
 

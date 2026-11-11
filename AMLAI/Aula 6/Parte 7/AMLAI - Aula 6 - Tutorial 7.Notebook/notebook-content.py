@@ -51,7 +51,7 @@ import matplotlib.pyplot as plt
 import mlflow
 mlflow.autolog(disable=True)
 # Load in the time series
-candy = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula6/candy_production.csv',
+candy = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula7/candy_production.csv',
             index_col='observation_date',
             parse_dates=True)
 # change the plot style into fivethirtyeight 
@@ -305,7 +305,7 @@ mean_forecast = cumsum(candy_diff) + candy.iloc[-1, 0]
 
 # CELL ********************
 
-amazon = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula6/candy_production.csv',
+amazon = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula7/candy_production.csv',
                      index_col='observation_date',
                      parse_dates=True).squeeze("columns")
 amazon.plot()
@@ -449,7 +449,7 @@ print(results.summary())
 
 # CELL ********************
 
-path = '/lakehouse/default/Files/AMLAI_Aula6/dataset.txt'
+path = '/lakehouse/default/Files/AMLAI_Aula7/dataset.txt'
 
 df = pd.read_csv(path)
 

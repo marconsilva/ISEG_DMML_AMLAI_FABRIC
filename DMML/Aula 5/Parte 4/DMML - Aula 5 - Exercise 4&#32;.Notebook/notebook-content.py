@@ -50,7 +50,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 
 # Path of the file to read
-iowa_file_path = '/lakehouse/default/Files/DMML_Aula5/home-data-for-ml-course/train.csv'
+iowa_file_path = '/lakehouse/default/Files/DMML_Aula6/home-data-for-ml-course/train.csv'
 
 home_data = pd.read_csv(iowa_file_path)
 # Create target object and call it y

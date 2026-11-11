@@ -67,7 +67,7 @@ print("\nSetup complete")
 # Load the large model to get the vectors
 nlp = spacy.load('en_core_web_lg')
 
-review_data = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula5/yelp_ratings.csv')
+review_data = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula6/yelp_ratings.csv')
 review_data.head()
 
 # METADATA ********************
@@ -116,7 +116,7 @@ vectors.shape
 # CELL ********************
 
 # Loading all document vectors from file
-vectors = np.load('/lakehouse/default/Files/AMLAI_Aula5/review_vectors.npy')
+vectors = np.load('/lakehouse/default/Files/AMLAI_Aula6/review_vectors.npy')
 
 # METADATA ********************
 

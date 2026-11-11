@@ -106,7 +106,7 @@ warnings.filterwarnings('ignore')
 
 # CELL ********************
 
-data = '/lakehouse/default/Files/DMML_Aula6/car_evaluation.csv'
+data = '/lakehouse/default/Files/DMML_Aula7/car_evaluation.csv'
 
 df = pd.read_csv(data, header=None)
 

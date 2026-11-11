@@ -102,7 +102,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras import callbacks
 
-spotify = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula3', 'spotify.csv'))
+spotify = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'spotify.csv'))
 
 X = spotify.copy().dropna()
 y = X.pop('track_popularity')

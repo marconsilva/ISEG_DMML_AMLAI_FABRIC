@@ -61,15 +61,15 @@ from sklearn.model_selection import train_test_split
 
 # Read the data
 data_candidates = [
-    Path('/lakehouse/default/Files/AMLAI_Aula2/melb_data.csv'),
-    Path.cwd() / 'Files' / 'AMLAI_Aula2' / 'melb_data.csv',
+    Path('/lakehouse/default/Files/AMLAI_Aula1/melb_data.csv'),
+    Path.cwd() / 'Files' / 'AMLAI_Aula1' / 'melb_data.csv',
     Path.cwd() / 'melb_data.csv',
 ]
 data_path = next((path for path in data_candidates if path.exists()), data_candidates[0])
 if not data_path.exists():
     raise FileNotFoundError(
-        "Upload melb_data.csv to Files/AMLAI_Aula2 in the attached lakehouse "
-        "or place it in a local Files/AMLAI_Aula2 folder."
+        "Upload melb_data.csv to Files/AMLAI_Aula1 in the attached lakehouse "
+        "or place it in a local Files/AMLAI_Aula1 folder."
     )
 data = pd.read_csv(data_path)
 

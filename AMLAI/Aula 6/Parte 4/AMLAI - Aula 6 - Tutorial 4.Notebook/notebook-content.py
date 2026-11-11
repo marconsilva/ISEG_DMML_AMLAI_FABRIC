@@ -55,7 +55,7 @@ import mlflow
 mlflow.autolog(disable=True)
 
 reserve = pd.read_csv(
-    "/lakehouse/default/Files/AMLAI_Aula6/reserve.csv",
+    "/lakehouse/default/Files/AMLAI_Aula7/reserve.csv",
     parse_dates={'Date': ['Year', 'Month', 'Day']},
     index_col='Date',
 )
@@ -213,7 +213,7 @@ def plot_lags(x, y=None, lags=6, nrows=1, lagplot_kwargs={}, **kwargs):
     return fig
 
 
-data_dir = Path("/lakehouse/default/Files/AMLAI_Aula6")
+data_dir = Path("/lakehouse/default/Files/AMLAI_Aula7")
 flu_trends = pd.read_csv(data_dir / "flu-trends.csv")
 flu_trends.set_index(
     pd.PeriodIndex(flu_trends.Week, freq="W"),

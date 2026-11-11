@@ -100,7 +100,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras import callbacks
 
-spotify = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula3', 'spotify.csv'))
+spotify = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'spotify.csv'))
 
 X = spotify.copy().dropna()
 y = X.pop('track_popularity')
@@ -232,7 +232,7 @@ q_2.check()
 
 import pandas as pd
 
-concrete = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula3', 'concrete.csv'))
+concrete = pd.read_csv(os.path.join(DATA_ROOT, 'AMLAI_Aula4', 'concrete.csv'))
 df = concrete.copy()
 
 df_train = df.sample(frac=0.7, random_state=0)

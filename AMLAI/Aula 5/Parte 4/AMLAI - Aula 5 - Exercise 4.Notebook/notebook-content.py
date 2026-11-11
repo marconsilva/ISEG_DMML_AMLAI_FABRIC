@@ -74,7 +74,7 @@ print("Setup Complete")
 # CELL ********************
 
 # Importing the training set
-dataset_train = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula5/Google_Stock_Price_Train.csv')
+dataset_train = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula6/Google_Stock_Price_Train.csv')
 
 # METADATA ********************
 
@@ -345,7 +345,7 @@ regressor.fit(X_train, y_train, epochs = 100, batch_size = 32)
 # CELL ********************
 
 # Getting the real stock price of 2017
-dataset_test = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula5/Google_Stock_Price_Test.csv')
+dataset_test = pd.read_csv('/lakehouse/default/Files/AMLAI_Aula6/Google_Stock_Price_Test.csv')
 dataset_test.head()
 
 # METADATA ********************

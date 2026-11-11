@@ -74,7 +74,7 @@ print('Setup Complete')
 # CELL ********************
 
 # Load in the data from JSON file
-data = pd.read_json('/lakehouse/default/Files/AMLAI_Aula5/restaurant.json')
+data = pd.read_json('/lakehouse/default/Files/AMLAI_Aula6/restaurant.json')
 data.head()
 
 # METADATA ********************

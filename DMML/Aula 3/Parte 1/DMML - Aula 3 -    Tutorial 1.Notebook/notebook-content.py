@@ -228,7 +228,7 @@ if mlflow is not None:
 
 # CELL ********************
 
-churn_df = pd.read_csv("/lakehouse/default/Files/DMML_Aula3/ChurnData.csv")
+churn_df = pd.read_csv("/lakehouse/default/Files/DMML_Aula4/ChurnData.csv")
 churn_df.head()
 
 # METADATA ********************

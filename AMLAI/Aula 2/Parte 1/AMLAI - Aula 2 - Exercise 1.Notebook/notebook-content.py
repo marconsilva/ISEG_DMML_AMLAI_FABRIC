@@ -60,14 +60,14 @@ from sklearn.model_selection import train_test_split
 
 # Read the data
 data_roots = [
-    Path('/lakehouse/default/Files/AMLAI_Aula2/home-data-for-ml-course'),
-    Path.cwd() / 'Files' / 'AMLAI_Aula2' / 'home-data-for-ml-course',
+    Path('/lakehouse/default/Files/AMLAI_Aula1/home-data-for-ml-course'),
+    Path.cwd() / 'Files' / 'AMLAI_Aula1' / 'home-data-for-ml-course',
     Path.cwd() / 'home-data-for-ml-course',
 ]
 data_root = next((path for path in data_roots if (path / 'train.csv').exists()), data_roots[0])
 if not (data_root / 'train.csv').exists() or not (data_root / 'test.csv').exists():
     raise FileNotFoundError(
-        "Upload train.csv and test.csv to Files/AMLAI_Aula2/home-data-for-ml-course "
+        "Upload train.csv and test.csv to Files/AMLAI_Aula1/home-data-for-ml-course "
         "or create the equivalent local folder."
     )
 X_full = pd.read_csv(data_root / 'train.csv', index_col='Id')
